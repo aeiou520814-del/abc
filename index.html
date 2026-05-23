@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Los Consentidos — Sistema de Meseros</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- ═══ NAVBAR ═══ -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#inicio" class="nav-logo">
+        <span class="logo-icon">🌮</span> Los Consentidos
+      </a>
+      <ul class="nav-links">
+        <li><a href="#menu">Menú</a></li>
+        <li><a href="#ordenes">Órdenes</a></li>
+        <li><a href="#inventario">Inventario</a></li>
+      </ul>
+      <button class="nav-cta" onclick="openModal('modalOrden')">🛒 Nueva Orden</button>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section id="inicio" class="hero">
+    <div class="hero-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-tag">🌮 Sistema de gestión para meseros</div>
+      <h1 class="hero-title">
+        Bienvenido a<br/><span class="title-highlight">Los Consentidos</span>
+      </h1>
+      <p class="hero-desc">
+        Registra órdenes, consulta el menú y controla el inventario desde cualquier dispositivo. Sin papel, sin errores.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="openModal('modalOrden')">
+          🛒 Tomar orden
+        </button>
+        <button class="btn-secondary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">
+          Ver menú 🍽️
+        </button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="emoji-float e1">🌮</div>
+      <div class="emoji-float e2">🫔</div>
+      <div class="emoji-float e3">🌶️</div>
+      <div class="emoji-float e4">🍜</div>
+      <div class="emoji-float e5">🥑</div>
+      <div class="emoji-float e6">🍋</div>
+      <div class="big-plate">
+        <div class="plate-ring r1"></div>
+        <div class="plate-ring r2"></div>
+        <div class="plate-center">🍛</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STATS ═══ -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-num" id="statPlatillos">—</span>
+      <span class="stat-label">Platillos</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num" id="statOrdenes">—</span>
+      <span class="stat-label">Órdenes hoy</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num" id="statIngredientes">—</span>
+      <span class="stat-label">Ingredientes</span>
+    </div>
+  </div>
+
+  <!-- ═══ MENÚ ═══ -->
+  <section id="menu" class="section-menu">
+    <div class="section-header">
+      <div class="section-pill">🍴 Nuestra carta</div>
+      <h2>¿Qué se te antoja hoy?</h2>
+      <p class="section-sub">Toca un platillo para agregarlo a la orden activa</p>
+    </div>
+
+    <div class="menu-filters" id="menuFilters"></div>
+
+    <div class="menu-grid" id="menuGrid">
+      <div class="menu-loading">
+        <div class="spinner"></div>
+        <p>Cargando el menú…</p>
+      </div>
+    </div>
+
+    <div class="menu-add-wrap">
+      <button class="btn-outline-color" onclick="openModal('modalPlatillo')">
+        + Agregar platillo al menú
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══ ÓRDENES ═══ -->
+  <section id="ordenes" class="section-ordenes">
+    <div class="section-header">
+      <div class="section-pill teal">📋 Pedidos</div>
+      <h2>Órdenes activas</h2>
+      <p class="section-sub">Estado en tiempo real de cada mesa</p>
+    </div>
+    <div class="ordenes-controls">
+      <button class="btn-primary" onclick="loadOrdenes()">🔄 Actualizar</button>
+      <button class="btn-secondary" onclick="openModal('modalOrden')">+ Nueva orden</button>
+    </div>
+    <div class="ordenes-grid" id="ordenesGrid">
+      <div class="empty-state">
+        <span class="empty-icon">📭</span>
+        <p>Haz clic en "Actualizar" para ver los pedidos</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ INVENTARIO ═══ -->
+  <section id="inventario" class="section-inventario">
+    <div class="section-header">
+      <div class="section-pill orange">🧺 Almacén</div>
+      <h2>Inventario de ingredientes</h2>
+      <p class="section-sub">Controla el stock de cada ingrediente</p>
+    </div>
+    <div class="inv-controls">
+      <input type="text" id="invSearch" placeholder="🔍  Buscar ingrediente…" oninput="filterInventario(this.value)"/>
+      <button class="btn-primary" onclick="loadInventario()">Cargar inventario</button>
+      <button class="btn-secondary" onclick="openModal('modalIngrediente')">+ Agregar</button>
+    </div>
+    <div class="stock-alerts" id="stockAlerts"></div>
+    <div class="inv-table-wrap">
+      <table class="inv-table" id="invTable">
+        <thead>
+          <tr>
+            <th>Ingrediente</th>
+            <th>Existencia</th>
+            <th>Mínimo</th>
+            <th>Unidad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="invBody">
+          <tr><td colspan="6" class="table-empty">Carga el inventario para verlo aquí</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-logo">🌮 Los Consentidos</span>
+        <p>Sistema de gestión para meseros · ESCOM IPN 2026</p>
+      </div>
+      <div class="footer-links">
+        <a href="#menu">Menú</a>
+        <a href="#ordenes">Órdenes</a>
+        <a href="#inventario">Inventario</a>
+      </div>
+      <div class="footer-info">
+        <p>Supabase · GitHub Pages</p>
+        <p>Práctica 5 · Bases de Datos · 3CV2</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ════════════════════════════════════════
+       MODAL — NUEVA ORDEN (mejorado)
+  ════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOrden" onclick="closeModalOutside(event,'modalOrden')">
+    <div class="modal modal-lg">
+      <button class="modal-close" onclick="closeModal('modalOrden')">✕</button>
+      <div class="modal-icon">🛒</div>
+      <h3 class="modal-title">Nueva orden</h3>
+
+      <div class="orden-layout">
+        <!-- Columna izquierda: datos y carrito -->
+        <div class="orden-col-left">
+          <div class="orden-meta">
+            <div class="meta-field">
+              <label>Mesa número</label>
+              <input type="number" id="ord-mesa" placeholder="Ej. 3" min="1" max="20"/>
+            </div>
+            <div class="meta-field">
+              <label>Número de empleado</label>
+              <input type="number" id="ord-empleado" placeholder="Ej. 1" min="1"/>
+            </div>
+          </div>
+
+          <div class="carrito-section">
+            <div class="carrito-header">
+              <span>🧾 Orden actual</span>
+              <button class="btn-limpiar" onclick="limpiarCarrito()">Limpiar</button>
+            </div>
+            <div id="carritoItems" class="carrito-items">
+              <p class="carrito-empty">Selecciona platillos del menú →</p>
+            </div>
+            <div class="carrito-total">
+              <span>Total:</span>
+              <span id="carritoTotal" class="total-monto">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna derecha: lista de platillos para agregar -->
+        <div class="orden-col-right">
+          <div class="platillos-search-wrap">
+            <input type="text" id="platSearch" placeholder="🔍 Buscar platillo…" oninput="filtrarPlatillosOrden(this.value)"/>
+          </div>
+          <div id="platillosOrdenList" class="platillos-orden-list">
+            <p class="carrito-empty">Cargando platillos…</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modalOrden')">Cancelar</button>
+        <button class="btn-confirm" onclick="crearOrden()">Enviar orden ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL — NUEVO PLATILLO -->
+  <div class="modal-overlay" id="modalPlatillo" onclick="closeModalOutside(event,'modalPlatillo')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalPlatillo')">✕</button>
+      <div class="modal-icon">🍽️</div>
+      <h3 class="modal-title">Nuevo platillo</h3>
+      <div class="modal-body">
+        <label>Nombre del platillo</label>
+        <input type="text" id="plat-nombre" placeholder="Ej. Tacos de canasta"/>
+        <label>Categoría</label>
+        <select id="plat-cat">
+          <option value="" disabled selected>Cargando…</option>
+        </select>
+        <label>Precio (MXN)</label>
+        <input type="number" id="plat-precio" placeholder="0.00" min="0" step="0.50"/>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modalPlatillo')">Cancelar</button>
+        <button class="btn-confirm" onclick="crearPlatillo()">Guardar ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL — NUEVO INGREDIENTE -->
+  <div class="modal-overlay" id="modalIngrediente" onclick="closeModalOutside(event,'modalIngrediente')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalIngrediente')">✕</button>
+      <div class="modal-icon">🧺</div>
+      <h3 class="modal-title">Agregar ingrediente</h3>
+      <div class="modal-body">
+        <label>Nombre</label>
+        <input type="text" id="ing-nombre" placeholder="Ej. Tomate Bola"/>
+        <label>Existencia inicial</label>
+        <input type="number" id="ing-existencia" placeholder="0" min="0"/>
+        <label>Cantidad mínima</label>
+        <input type="number" id="ing-minimo" placeholder="0" min="0"/>
+        <label>Unidad</label>
+        <select id="ing-unidad">
+          <option value="KG">KG — Kilogramos</option>
+          <option value="PZ">PZ — Piezas</option>
+          <option value="LTS">LTS — Litros</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modalIngrediente')">Cancelar</button>
+        <button class="btn-confirm" onclick="crearIngrediente()">Guardar ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
