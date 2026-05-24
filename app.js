@@ -251,14 +251,18 @@ async function loadCategorias() {
 ════════════════════════════════════════════════ */
 async function loadMenu() {
   try {
-    // JOIN con CATEGORIA para traer el nombre de la categoría
-    const data = await sb.get('platillo',
-      'select=id_platillo,nombre,precio,frecuencia,CATEGORIA(nombre)&order=nombre.asc'
-    );
-    // Normalizar: aplanar el JOIN
-    allPlatillos = data.map(p => ({
+    // Traer platillos y categorías por separado (evita problemas de JOIN en Supabase)
+    const [platillos, cats] = await Promise.all([
+      sb.get('platillo', 'select=id_platillo,nombre,precio,frecuencia,id_categorias&order=nombre.asc'),
+      sb.get('categoria', 'select=id_categoria,nombre')
+    ]);
+    // Mapear id_categorias → nombre
+    const catMap = {};
+    cats.forEach(c => { catMap[c.id_categoria] = c.nombre; });
+
+    allPlatillos = platillos.map(p => ({
       ...p,
-      categoria: p.CATEGORIA ? p.CATEGORIA.nombre : 'Sin categoría'
+      categoria: catMap[p.id_categorias] || 'Sin categoría'
     }));
     renderMenu(allPlatillos);
     renderPlatillosOrden(allPlatillos);
