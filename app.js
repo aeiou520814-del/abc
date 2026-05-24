@@ -197,9 +197,9 @@ function renderPlatillosOrden(lista) {
 async function loadStats() {
   try {
     const [plat, ord, ing] = await Promise.all([
-      sb.get('PLATILLO', 'select=id_platillo'),
-      sb.get('ORDEN', 'select=id_orden,fecha&fecha=eq.' + new Date().toISOString().slice(0,10)),
-      sb.get('INGREDIENTE', 'select=id_ingrediente'),
+      sb.get('platillo', 'select=id_platillo'),
+      sb.get('orden', 'select=id_orden,fecha&fecha=eq.' + new Date().toISOString().slice(0,10)),
+      sb.get('ingrediente', 'select=id_ingrediente'),
     ]);
     document.getElementById('statPlatillos').textContent   = plat.length;
     document.getElementById('statOrdenes').textContent     = ord.length;
@@ -212,7 +212,7 @@ async function loadStats() {
 ════════════════════════════════════════════════ */
 async function loadCategorias() {
   try {
-    allCategorias = await sb.get('CATEGORIA', 'select=id_categoria,nombre&order=nombre.asc');
+    allCategorias = await sb.get('categoria', 'select=id_categoria,nombre&order=nombre.asc');
     
     // Llenar select del modal de platillo
     const sel = document.getElementById('plat-cat');
@@ -252,7 +252,7 @@ async function loadCategorias() {
 async function loadMenu() {
   try {
     // JOIN con CATEGORIA para traer el nombre de la categoría
-    const data = await sb.get('PLATILLO',
+    const data = await sb.get('platillo',
       'select=id_platillo,nombre,precio,frecuencia,CATEGORIA(nombre)&order=nombre.asc'
     );
     // Normalizar: aplanar el JOIN
@@ -340,7 +340,7 @@ async function crearPlatillo() {
   if (isNaN(precio) || precio <= 0) return showToast('Ingresa un precio válido', 'error');
 
   try {
-    await sb.post('PLATILLO', {
+    await sb.post('platillo', {
       nombre,
       id_categorias: cat_id ? parseInt(cat_id) : null,
       precio,
@@ -364,7 +364,7 @@ async function loadOrdenes() {
   grid.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto"></div><p style="margin-top:1rem">Cargando órdenes…</p></div>';
   try {
     const hoy = new Date().toISOString().slice(0, 10);
-    const ordenes = await sb.get('ORDEN',
+    const ordenes = await sb.get('orden',
       `select=id_orden,fecha,estado,cuenta_total,numero_empleado_mesero&fecha=gte.${hoy}&order=id_orden.desc`
     );
     if (!ordenes.length) {
@@ -403,7 +403,7 @@ async function crearOrden() {
 
   try {
     // 1. Crear la orden
-    const [orden] = await sb.post('ORDEN', {
+    const [orden] = await sb.post('orden', {
       numero_empleado_mesero: parseInt(empId),
       cuenta_total,
       estado: false
@@ -415,13 +415,13 @@ async function crearOrden() {
       id_platillo: parseInt(id),
       cantidad:    v.cantidad
     }));
-    await sb.post('DETALLE_ORDEN', detalles);
+    await sb.post('detalle_orden', detalles);
 
     // 3. Incrementar frecuencia de cada platillo
     for (const [id, v] of items) {
       const plat = allPlatillos.find(p => p.id_platillo == id);
       if (plat) {
-        await sb.patch('PLATILLO', `id_platillo=eq.${id}`, {
+        await sb.patch('platillo', `id_platillo=eq.${id}`, {
           frecuencia: (plat.frecuencia || 0) + v.cantidad
         });
       }
@@ -443,7 +443,7 @@ async function crearOrden() {
 
 async function marcarServida(id) {
   try {
-    await sb.patch('ORDEN', `id_orden=eq.${id}`, { estado: true });
+    await sb.patch('orden', `id_orden=eq.${id}`, { estado: true });
     showToast('Orden marcada como servida ✓');
     loadOrdenes();
   } catch(e) {
@@ -456,7 +456,7 @@ async function marcarServida(id) {
 ════════════════════════════════════════════════ */
 async function loadInventario() {
   try {
-    const data = await sb.get('INGREDIENTE',
+    const data = await sb.get('ingrediente',
       'select=id_ingrediente,nombre,existencia,minimo,unidad&order=nombre.asc'
     );
     allIngredientes = data;
@@ -521,7 +521,7 @@ async function crearIngrediente() {
   if (!nombre) return showToast('El nombre es obligatorio', 'error');
 
   try {
-    await sb.post('INGREDIENTE', { nombre, existencia, minimo, unidad });
+    await sb.post('ingrediente', { nombre, existencia, minimo, unidad });
     showToast('¡Ingrediente registrado! 🧺');
     closeModal('modalIngrediente');
     ['ing-nombre','ing-existencia','ing-minimo'].forEach(id =>
@@ -537,7 +537,7 @@ async function editarStock(id, actual) {
   const nuevo = prompt(`Stock actual: ${actual}\nIngresa el stock físico real:`);
   if (nuevo === null || nuevo.trim() === '') return;
   try {
-    await sb.patch('INGREDIENTE', `id_ingrediente=eq.${id}`, { existencia: Number(nuevo) });
+    await sb.patch('ingrediente', `id_ingrediente=eq.${id}`, { existencia: Number(nuevo) });
     showToast('Ajuste aplicado ✓');
     loadInventario();
   } catch(e) {
@@ -548,7 +548,7 @@ async function editarStock(id, actual) {
 async function eliminarIngrediente(id) {
   if (!confirm('¿Eliminar este ingrediente del catálogo?')) return;
   try {
-    await sb.delete('INGREDIENTE', `id_ingrediente=eq.${id}`);
+    await sb.delete('ingrediente', `id_ingrediente=eq.${id}`);
     showToast('Ingrediente eliminado');
     loadInventario(); loadStats();
   } catch(e) {
