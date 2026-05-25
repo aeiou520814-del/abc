@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="styles_extra.css"/>
 </head>
 <body>
 
@@ -20,8 +21,17 @@
         <li><a href="#menu">Menú</a></li>
         <li><a href="#ordenes">Órdenes</a></li>
         <li><a href="#inventario">Inventario</a></li>
+        <li><a href="#meseros">Meseros</a></li>
+        <li><a href="#mesas">Mesas</a></li>
+        <li><a href="#caja">Caja</a></li>
+        <li><a href="#resenas">Reseñas</a></li>
       </ul>
-      <button class="nav-cta" onclick="openModal('modalOrden')">🛒 Nueva Orden</button>
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button class="nav-bell" onclick="toggleNotifPanel()" title="Notificaciones">
+          🔔<span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </button>
+        <button class="nav-cta" onclick="openModal('modalOrden')">🛒 Nueva Orden</button>
+      </div>
     </div>
   </nav>
 
@@ -89,16 +99,13 @@
       <h2>¿Qué se te antoja hoy?</h2>
       <p class="section-sub">Toca un platillo para agregarlo a la orden activa</p>
     </div>
-
     <div class="menu-filters" id="menuFilters"></div>
-
     <div class="menu-grid" id="menuGrid">
       <div class="menu-loading">
         <div class="spinner"></div>
         <p>Cargando el menú…</p>
       </div>
     </div>
-
     <div class="menu-add-wrap">
       <button class="btn-outline-color" onclick="openModal('modalPlatillo')">
         + Agregar platillo al menú
@@ -157,6 +164,94 @@
     </div>
   </section>
 
+  <!-- ═══ MESEROS ═══ -->
+  <section id="meseros" class="section-meseros">
+    <div class="section-header">
+      <div class="section-pill purple">👨‍💼 Staff</div>
+      <h2>Gestión de Meseros</h2>
+      <p class="section-sub">Registro de empleados y control de turnos</p>
+    </div>
+    <div class="meseros-controls">
+      <button class="btn-primary" onclick="loadMeseros()">🔄 Actualizar</button>
+      <button class="btn-secondary" onclick="openModal('modalMesero')">+ Nuevo mesero</button>
+    </div>
+    <div class="meseros-stats" id="mesesStats"></div>
+    <div class="meseros-grid" id="mesesGrid">
+      <div class="empty-state">
+        <span class="empty-icon">👨‍💼</span>
+        <p>Haz clic en "Actualizar" para ver los meseros</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ MESAS ═══ -->
+  <section id="mesas" class="section-mesas">
+    <div class="section-header">
+      <div class="section-pill blue">🏷️ Planta</div>
+      <h2>Mapa de Mesas</h2>
+      <p class="section-sub">Estado en tiempo real de cada mesa del restaurante</p>
+    </div>
+    <div class="mesas-leyenda">
+      <span class="leyenda-item libre">⬜ Libre</span>
+      <span class="leyenda-item ocupada">🍽️ Ocupada</span>
+    </div>
+    <div class="mapa-mesas" id="mapaMesas">
+      <p style="grid-column:1/-1;text-align:center;color:var(--gris)">Cargando mesas…</p>
+    </div>
+    <div class="mesas-controls">
+      <button class="btn-primary" onclick="loadMesas()">🔄 Actualizar mesas</button>
+      <button class="btn-secondary" onclick="inicializarMesas()">⚙️ Inicializar 12 mesas</button>
+    </div>
+  </section>
+
+  <!-- ═══ CAJA ═══ -->
+  <section id="caja" class="section-caja">
+    <div class="section-header">
+      <div class="section-pill green">💳 Cobro</div>
+      <h2>Caja</h2>
+      <p class="section-sub">Órdenes servidas listas para cobrar</p>
+    </div>
+    <div class="caja-controls">
+      <button class="btn-primary" onclick="loadCaja()">🔄 Actualizar caja</button>
+    </div>
+    <div class="caja-grid" id="cajaGrid">
+      <div class="empty-state">
+        <span class="empty-icon">💳</span>
+        <p>Haz clic en "Actualizar caja" para ver las órdenes pendientes de cobro</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RESEÑAS ═══ -->
+  <section id="resenas" class="section-resenas">
+    <div class="section-header">
+      <div class="section-pill pink">⭐ Opiniones</div>
+      <h2>Reseñas y Calificaciones</h2>
+      <p class="section-sub">Genera un QR por mesa y consulta las calificaciones de tus clientes</p>
+    </div>
+    <div class="resenas-layout">
+      <div class="qr-panel">
+        <h3>📱 Generar QR por mesa</h3>
+        <p>El cliente escanea el QR con su teléfono y puede dejar su reseña</p>
+        <div class="qr-selector">
+          <label>Selecciona la mesa:</label>
+          <select id="qrMesaSelect" onchange="generarQR(this.value)">
+            <option value="">— elige una mesa —</option>
+          </select>
+        </div>
+        <div id="qrDisplay" class="qr-display">
+          <p class="qr-placeholder">Selecciona una mesa para ver su QR</p>
+        </div>
+      </div>
+      <div class="resenas-panel">
+        <div class="resenas-stats" id="resenasStats"></div>
+        <div class="resenas-lista" id="resenasLista">
+          <button class="btn-primary" onclick="loadResenas()" style="margin:1rem auto;display:block">Ver reseñas recientes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ FOOTER ═══ -->
   <footer class="footer">
     <div class="footer-inner">
@@ -168,6 +263,10 @@
         <a href="#menu">Menú</a>
         <a href="#ordenes">Órdenes</a>
         <a href="#inventario">Inventario</a>
+        <a href="#meseros">Meseros</a>
+        <a href="#mesas">Mesas</a>
+        <a href="#caja">Caja</a>
+        <a href="#resenas">Reseñas</a>
       </div>
       <div class="footer-info">
         <p>Supabase · GitHub Pages</p>
@@ -176,17 +275,15 @@
     </div>
   </footer>
 
-  <!-- ════════════════════════════════════════
-       MODAL — NUEVA ORDEN (mejorado)
-  ════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════
+       MODAL — NUEVA ORDEN
+  ═══════════════════════════════════════════ -->
   <div class="modal-overlay" id="modalOrden" onclick="closeModalOutside(event,'modalOrden')">
     <div class="modal modal-lg">
       <button class="modal-close" onclick="closeModal('modalOrden')">✕</button>
       <div class="modal-icon">🛒</div>
       <h3 class="modal-title">Nueva orden</h3>
-
       <div class="orden-layout">
-        <!-- Columna izquierda: datos y carrito -->
         <div class="orden-col-left">
           <div class="orden-meta">
             <div class="meta-field">
@@ -198,7 +295,6 @@
               <input type="number" id="ord-empleado" placeholder="Ej. 1" min="1"/>
             </div>
           </div>
-
           <div class="carrito-section">
             <div class="carrito-header">
               <span>🧾 Orden actual</span>
@@ -213,8 +309,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Columna derecha: lista de platillos para agregar -->
         <div class="orden-col-right">
           <div class="platillos-search-wrap">
             <input type="text" id="platSearch" placeholder="🔍 Buscar platillo…" oninput="filtrarPlatillosOrden(this.value)"/>
@@ -224,7 +318,6 @@
           </div>
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modalOrden')">Cancelar</button>
         <button class="btn-confirm" onclick="crearOrden()">Enviar orden ✓</button>
@@ -279,6 +372,128 @@
         <button class="btn-cancel" onclick="closeModal('modalIngrediente')">Cancelar</button>
         <button class="btn-confirm" onclick="crearIngrediente()">Guardar ✓</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL — NUEVO MESERO -->
+  <div class="modal-overlay" id="modalMesero" onclick="closeModalOutside(event,'modalMesero')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalMesero')">✕</button>
+      <div class="modal-icon">👨‍💼</div>
+      <h3 class="modal-title">Nuevo mesero</h3>
+      <div class="modal-body">
+        <label>Nombre completo</label>
+        <input type="text" id="mes-nombre" placeholder="Ej. Juan Pérez"/>
+        <label>Número de empleado</label>
+        <input type="number" id="mes-numero" placeholder="Ej. 12" min="1"/>
+        <label>Turno</label>
+        <select id="mes-turno">
+          <option value="Mañana">🌅 Mañana</option>
+          <option value="Tarde">🌤️ Tarde</option>
+          <option value="Noche">🌙 Noche</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modalMesero')">Cancelar</button>
+        <button class="btn-confirm" onclick="crearMesero()">Registrar ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL — DETALLE MESA -->
+  <div class="modal-overlay" id="modalMesa" onclick="closeModalOutside(event,'modalMesa')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalMesa')">✕</button>
+      <div class="modal-icon">🍽️</div>
+      <h3 class="modal-title">Mesa ocupada</h3>
+      <div class="mesa-modal-info">
+        <div class="mesa-modal-num" id="mesaModalNum">Mesa —</div>
+        <div class="mesa-modal-tiempo" id="mesaModalTiempo"></div>
+      </div>
+      <div class="mesa-modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalMesa')">Cerrar</button>
+        <button class="btn-primary" onclick="liberarMesaActual()">✅ Liberar mesa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL — PAGO -->
+  <div class="modal-overlay" id="modalPago" onclick="closeModalOutside(event,'modalPago')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalPago')">✕</button>
+      <div class="modal-icon">💳</div>
+      <h3 class="modal-title">Registrar pago</h3>
+      <div class="modal-body">
+        <div style="text-align:center;margin-bottom:1rem">
+          <div style="font-size:2rem;font-family:var(--font-display);font-weight:900;color:var(--naranja)" id="pagoTotal">$0.00</div>
+          <div style="font-size:14px;color:var(--gris);margin-top:0.3rem" id="pagoPorPersona"></div>
+        </div>
+        <label>Método de pago</label>
+        <div class="pago-metodos">
+          <button class="pago-metodo-btn selected" data-metodo="Efectivo" onclick="seleccionarMetodo('Efectivo')">
+            💵<span class="pago-metodo-label">Efectivo</span>
+          </button>
+          <button class="pago-metodo-btn" data-metodo="Tarjeta" onclick="seleccionarMetodo('Tarjeta')">
+            💳<span class="pago-metodo-label">Tarjeta</span>
+          </button>
+          <button class="pago-metodo-btn" data-metodo="Transferencia" onclick="seleccionarMetodo('Transferencia')">
+            📱<span class="pago-metodo-label">Transferencia</span>
+          </button>
+        </div>
+        <label>Número de comensales (para dividir)</label>
+        <input type="number" id="pagoComensales" value="1" min="1" max="20" oninput="actualizarDivision()"/>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modalPago')">Cancelar</button>
+        <button class="btn-confirm" onclick="procesarPago()">Confirmar pago ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL — TICKET -->
+  <div class="modal-overlay" id="modalTicket" onclick="closeModalOutside(event,'modalTicket')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalTicket')">✕</button>
+      <div class="modal-icon">🧾</div>
+      <h3 class="modal-title">Ticket de venta</h3>
+      <div class="ticket-preview" id="ticketContenido"></div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modalTicket')">Cerrar</button>
+        <button class="btn-confirm" onclick="imprimirTicket()">🖨️ Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL — NOTIFICACIONES -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-header">
+      <span>🔔 Notificaciones</span>
+      <button onclick="toggleNotifPanel()">✕</button>
+    </div>
+    <div class="notif-body" id="notifBody">
+      <p class="notif-empty">Sin alertas por ahora ✅</p>
+    </div>
+    <div class="notif-footer">
+      <button class="btn-secondary" onclick="checkNotificaciones()">🔄 Actualizar alertas</button>
+    </div>
+  </div>
+
+  <!-- RESEÑA PÚBLICA (cliente que escanea el QR) -->
+  <div id="resenaPublicaOverlay" class="resena-publica-overlay" style="display:none">
+    <div class="resena-publica-card">
+      <div style="font-size:3rem">🌮</div>
+      <h2>Los Consentidos</h2>
+      <p id="resenaPublicaMesa" style="font-weight:700;color:var(--naranja);margin:0.5rem 0"></p>
+      <p style="color:var(--gris);font-size:14px;margin-bottom:0.5rem">¿Cómo fue tu experiencia?</p>
+      <div class="stars-selector">
+        <button class="star-btn" onclick="seleccionarEstrella(1)">☆</button>
+        <button class="star-btn" onclick="seleccionarEstrella(2)">☆</button>
+        <button class="star-btn" onclick="seleccionarEstrella(3)">☆</button>
+        <button class="star-btn" onclick="seleccionarEstrella(4)">☆</button>
+        <button class="star-btn" onclick="seleccionarEstrella(5)">☆</button>
+      </div>
+      <textarea id="resenaComentario" placeholder="Cuéntanos cómo estuvo… (opcional)"></textarea>
+      <button class="btn-primary" style="width:100%" onclick="enviarResenaPublica()">Enviar reseña ✓</button>
     </div>
   </div>
 
