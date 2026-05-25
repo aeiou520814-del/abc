@@ -3,87 +3,56 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Los Consentidos — Sistema de Meseros</title>
+  <title>Los Consentidos — Sistema de Gestión</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
-  <link rel="stylesheet" href="styles_extra.css"/>
 </head>
 <body>
 
-  <!-- ═══ NAVBAR ═══ -->
   <nav id="navbar">
     <div class="nav-inner">
-      <a href="#inicio" class="nav-logo">
-        <span class="logo-icon">🌮</span> Los Consentidos
-      </a>
+      <a href="#inicio" class="nav-logo">Los Consentidos</a>
       <ul class="nav-links">
         <li><a href="#menu">Menú</a></li>
         <li><a href="#ordenes">Órdenes</a></li>
         <li><a href="#inventario">Inventario</a></li>
-        <li><a href="#meseros">Meseros</a></li>
+        <li><a href="#meseros">Personal</a></li>
         <li><a href="#mesas">Mesas</a></li>
         <li><a href="#caja">Caja</a></li>
         <li><a href="#resenas">Reseñas</a></li>
       </ul>
-      <div style="display:flex;align-items:center;gap:0.8rem">
+      <div style="display:flex;align-items:center;gap:1.5rem">
         <button class="nav-bell" onclick="toggleNotifPanel()" title="Notificaciones">
           🔔<span class="notif-badge" id="notifBadge" style="display:none">0</span>
         </button>
-        <button class="nav-cta" onclick="openModal('modalOrden')">🛒 Nueva Orden</button>
+        <button class="nav-cta" onclick="openModal('modalOrden')">Nueva Orden</button>
       </div>
     </div>
   </nav>
 
-  <!-- ═══ HERO ═══ -->
-  <section id="inicio" class="hero">
-    <div class="hero-blobs">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-    </div>
+  <section id="inicio" class="hero" style="background-image: linear-gradient(rgba(26, 18, 8, 0.7), rgba(26, 18, 8, 0.8)), url('image_ac002e.jpg'); background-size: cover; background-position: center;">
     <div class="hero-content">
-      <div class="hero-tag">🌮 Sistema de gestión para meseros</div>
-      <h1 class="hero-title">
-        Bienvenido a<br/><span class="title-highlight">Los Consentidos</span>
-      </h1>
-      <p class="hero-desc">
-        Registra órdenes, consulta el menú y controla el inventario desde cualquier dispositivo. Sin papel, sin errores.
-      </p>
+      <div class="hero-tag">Sistema de Gestión Interna</div>
+      <h1 class="hero-title">Gestión de Excelencia para<br/><span class="title-highlight">Los Consentidos</span></h1>
+      <p class="hero-desc">Controla órdenes, inventario y mesas con una interfaz diseñada para maximizar la eficiencia y la elegancia de tu servicio.</p>
       <div class="hero-actions">
-        <button class="btn-primary" onclick="openModal('modalOrden')">
-          🛒 Tomar orden
-        </button>
-        <button class="btn-secondary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">
-          Ver menú 🍽️
-        </button>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="emoji-float e1">🌮</div>
-      <div class="emoji-float e2">🫔</div>
-      <div class="emoji-float e3">🌶️</div>
-      <div class="emoji-float e4">🍜</div>
-      <div class="emoji-float e5">🥑</div>
-      <div class="emoji-float e6">🍋</div>
-      <div class="big-plate">
-        <div class="plate-ring r1"></div>
-        <div class="plate-ring r2"></div>
-        <div class="plate-center">🍛</div>
+        <button class="btn-primary" onclick="openModal('modalOrden')">Tomar Orden</button>
+        <button class="btn-secondary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Ver Menú</button>
       </div>
     </div>
   </section>
 
-  <!-- ═══ STATS ═══ -->
   <div class="stats-bar">
     <div class="stat-item">
       <span class="stat-num" id="statPlatillos">—</span>
-      <span class="stat-label">Platillos</span>
+      <span class="stat-label">Platillos Activos</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-num" id="statOrdenes">—</span>
-      <span class="stat-label">Órdenes hoy</span>
+      <span class="stat-label">Órdenes de Hoy</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
@@ -92,281 +61,292 @@
     </div>
   </div>
 
-  <!-- ═══ MENÚ ═══ -->
   <section id="menu" class="section-menu">
-    <div class="section-header">
-      <div class="section-pill">🍴 Nuestra carta</div>
-      <h2>¿Qué se te antoja hoy?</h2>
-      <p class="section-sub">Toca un platillo para agregarlo a la orden activa</p>
-    </div>
-    <div class="menu-filters" id="menuFilters"></div>
-    <div class="menu-grid" id="menuGrid">
-      <div class="menu-loading">
-        <div class="spinner"></div>
-        <p>Cargando el menú…</p>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Nuestra Carta</div>
+        <h2>Explorar el Menú</h2>
+        <p class="section-sub">Selecciona platillos para añadirlos rápidamente a una orden activa.</p>
       </div>
-    </div>
-    <div class="menu-add-wrap">
-      <button class="btn-outline-color" onclick="openModal('modalPlatillo')">
-        + Agregar platillo al menú
-      </button>
+      <div class="menu-filters" id="menuFilters"></div>
+      <div class="menu-grid" id="menuGrid">
+        <div class="menu-loading">
+          <div class="spinner"></div>
+          <p>Cargando exquisiteces…</p>
+        </div>
+      </div>
+      <div class="menu-add-wrap">
+        <button class="btn-outline-color" onclick="openModal('modalPlatillo')">+ Agregar Platillo al Menú</button>
+      </div>
     </div>
   </section>
 
-  <!-- ═══ ÓRDENES ═══ -->
   <section id="ordenes" class="section-ordenes">
-    <div class="section-header">
-      <div class="section-pill teal">📋 Pedidos</div>
-      <h2>Órdenes activas</h2>
-      <p class="section-sub">Estado en tiempo real de cada mesa</p>
-    </div>
-    <div class="ordenes-controls">
-      <button class="btn-primary" onclick="loadOrdenes()">🔄 Actualizar</button>
-      <button class="btn-secondary" onclick="openModal('modalOrden')">+ Nueva orden</button>
-    </div>
-    <div class="ordenes-grid" id="ordenesGrid">
-      <div class="empty-state">
-        <span class="empty-icon">📭</span>
-        <p>Haz clic en "Actualizar" para ver los pedidos</p>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Servicio en Curso</div>
+        <h2>Órdenes Activas</h2>
+        <p class="section-sub">Monitoreo en tiempo real de los pedidos de nuestros clientes.</p>
+      </div>
+      <div class="ordenes-controls">
+        <button class="btn-primary" onclick="loadOrdenes()">Actualizar Tablero</button>
+        <button class="btn-secondary" onclick="openModal('modalOrden')">+ Nueva Orden</button>
+      </div>
+      <div class="ordenes-grid" id="ordenesGrid">
+        <div class="empty-state">
+          <p>Haz clic en "Actualizar Tablero" para sincronizar los pedidos.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══ INVENTARIO ═══ -->
   <section id="inventario" class="section-inventario">
-    <div class="section-header">
-      <div class="section-pill orange">🧺 Almacén</div>
-      <h2>Inventario de ingredientes</h2>
-      <p class="section-sub">Controla el stock de cada ingrediente</p>
-    </div>
-    <div class="inv-controls">
-      <input type="text" id="invSearch" placeholder="🔍  Buscar ingrediente…" oninput="filterInventario(this.value)"/>
-      <button class="btn-primary" onclick="loadInventario()">Cargar inventario</button>
-      <button class="btn-secondary" onclick="openModal('modalIngrediente')">+ Agregar</button>
-    </div>
-    <div class="stock-alerts" id="stockAlerts"></div>
-    <div class="inv-table-wrap">
-      <table class="inv-table" id="invTable">
-        <thead>
-          <tr>
-            <th>Ingrediente</th>
-            <th>Existencia</th>
-            <th>Mínimo</th>
-            <th>Unidad</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="invBody">
-          <tr><td colspan="6" class="table-empty">Carga el inventario para verlo aquí</td></tr>
-        </tbody>
-      </table>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Almacén & Insumos</div>
+        <h2>Control de Inventario</h2>
+        <p class="section-sub">Gestiona existencias y recibe alertas de stock bajo.</p>
+      </div>
+      <div class="inv-controls">
+        <input type="text" id="invSearch" placeholder="Buscar insumo…" oninput="filterInventario(this.value)"/>
+        <button class="btn-primary" onclick="loadInventario()">Actualizar Inventario</button>
+        <button class="btn-secondary" onclick="openModal('modalIngrediente')">+ Registrar Insumo</button>
+      </div>
+      <div class="stock-alerts" id="stockAlerts"></div>
+      <div class="inv-table-wrap">
+        <table class="inv-table" id="invTable">
+          <thead>
+            <tr>
+              <th>Ingrediente</th>
+              <th>Existencia</th>
+              <th>Mínimo</th>
+              <th>Unidad</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="invBody">
+            <tr><td colspan="6" class="table-empty">Sincronizando almacén...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 
-  <!-- ═══ MESEROS ═══ -->
   <section id="meseros" class="section-meseros">
-    <div class="section-header">
-      <div class="section-pill purple">👨‍💼 Staff</div>
-      <h2>Gestión de Meseros</h2>
-      <p class="section-sub">Registro de empleados (tabla <code>empleado</code>) y control de turnos</p>
-    </div>
-    <div class="meseros-controls">
-      <button class="btn-primary" onclick="loadMeseros()">🔄 Actualizar</button>
-      <button class="btn-secondary" onclick="openModal('modalMesero');cargarRolesEnModal()">+ Nuevo mesero</button>
-    </div>
-    <div class="meseros-stats" id="mesesStats"></div>
-    <div class="meseros-grid" id="mesesGrid">
-      <div class="empty-state">
-        <span class="empty-icon">👨‍💼</span>
-        <p>Haz clic en "Actualizar" para ver los meseros</p>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Equipo de Trabajo</div>
+        <h2>Gestión de Personal</h2>
+        <p class="section-sub">Administración de nuestro talento y control de turnos.</p>
+      </div>
+      <div class="meseros-controls">
+        <button class="btn-primary" onclick="loadMeseros()">Actualizar Plantilla</button>
+        <button class="btn-secondary" onclick="openModal('modalMesero');cargarRolesEnModal()">+ Nuevo Colaborador</button>
+      </div>
+      <div class="meseros-stats" id="mesesStats"></div>
+      <div class="meseros-grid" id="mesesGrid">
+        <div class="empty-state">
+          <p>Sincronizando plantilla...</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══ MESAS ═══ -->
   <section id="mesas" class="section-mesas">
-    <div class="section-header">
-      <div class="section-pill blue">🏷️ Planta</div>
-      <h2>Mapa de Mesas</h2>
-      <p class="section-sub">Estado en tiempo real de cada mesa del restaurante</p>
-    </div>
-    <div class="mesas-leyenda">
-      <span class="leyenda-item libre">⬜ Libre</span>
-      <span class="leyenda-item ocupada">🍽️ Ocupada</span>
-    </div>
-    <div class="mapa-mesas" id="mapaMesas">
-      <p style="grid-column:1/-1;text-align:center;color:var(--gris)">Cargando mesas…</p>
-    </div>
-    <div class="mesas-controls">
-      <button class="btn-primary" onclick="loadMesas()">🔄 Actualizar mesas</button>
-      <button class="btn-secondary" onclick="inicializarMesas()">⚙️ Inicializar 12 mesas</button>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Plano del Restaurante</div>
+        <h2>Disponibilidad de Mesas</h2>
+        <p class="section-sub">Asignación y estado en tiempo real del piso.</p>
+      </div>
+      <div class="mesas-leyenda">
+        <span class="leyenda-item libre">Libre</span>
+        <span class="leyenda-item ocupada">Ocupada</span>
+      </div>
+      <div class="mapa-mesas" id="mapaMesas">
+        <p style="grid-column:1/-1;text-align:center;">Cargando disposición…</p>
+      </div>
+      <div class="mesas-controls" style="text-align:center; margin-top:2rem;">
+        <button class="btn-primary" onclick="loadMesas()">Refrescar Plano</button>
+        <button class="btn-secondary" onclick="inicializarMesas()">Inicializar Layout (12 Mesas)</button>
+      </div>
     </div>
   </section>
 
-  <!-- ═══ CAJA ═══ -->
   <section id="caja" class="section-caja">
-    <div class="section-header">
-      <div class="section-pill green">💳 Cobro</div>
-      <h2>Caja</h2>
-      <p class="section-sub">Órdenes pendientes de cobro — se registran en tabla <code>ingreso</code></p>
-    </div>
-    <div class="caja-controls">
-      <button class="btn-primary" onclick="loadCaja()">🔄 Actualizar caja</button>
-    </div>
-    <div class="caja-grid" id="cajaGrid">
-      <div class="empty-state">
-        <span class="empty-icon">💳</span>
-        <p>Haz clic en "Actualizar caja" para ver las órdenes pendientes de cobro</p>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Finanzas</div>
+        <h2>Caja y Cobranza</h2>
+        <p class="section-sub">Gestión de cuentas pendientes y liquidación de mesas.</p>
+      </div>
+      <div class="caja-controls" style="text-align:center; margin-bottom: 2rem;">
+        <button class="btn-primary" onclick="loadCaja()">Actualizar Caja</button>
+      </div>
+      <div class="caja-grid" id="cajaGrid">
+        <div class="empty-state">
+          <p>Sincronizando cuentas pendientes...</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══ RESEÑAS ═══ -->
   <section id="resenas" class="section-resenas">
-    <div class="section-header">
-      <div class="section-pill pink">⭐ Opiniones</div>
-      <h2>Reseñas y Calificaciones</h2>
-      <p class="section-sub">Genera un QR por mesa y consulta las calificaciones de tus clientes</p>
-    </div>
-    <div class="resenas-layout">
-      <div class="qr-panel">
-        <h3>📱 Generar QR por mesa</h3>
-        <p>El cliente escanea el QR con su teléfono y puede dejar su reseña</p>
-        <div class="qr-selector">
-          <label>Selecciona la mesa:</label>
-          <select id="qrMesaSelect" onchange="generarQR(this.value)">
-            <option value="">— elige una mesa —</option>
-          </select>
-        </div>
-        <div id="qrDisplay" class="qr-display">
-          <p class="qr-placeholder">Selecciona una mesa para ver su QR</p>
-        </div>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-pill">Experiencia del Cliente</div>
+        <h2>Opiniones y Calidad</h2>
+        <p class="section-sub">Genera códigos QR para que los comensales califiquen su visita.</p>
       </div>
-      <div class="resenas-panel">
-        <div class="resenas-stats" id="resenasStats"></div>
-        <div class="resenas-lista" id="resenasLista">
-          <button class="btn-primary" onclick="loadResenas()" style="margin:1rem auto;display:block">Ver reseñas recientes</button>
+      <div class="resenas-layout">
+        <div class="qr-panel">
+          <h3>Generador de Código QR</h3>
+          <p>Proporciona este código al cliente al finalizar su comida.</p>
+          <div class="qr-selector">
+            <label>Selecciona la mesa a evaluar:</label>
+            <select id="qrMesaSelect" onchange="generarQR(this.value)">
+              <option value="">— Elegir mesa —</option>
+            </select>
+          </div>
+          <div id="qrDisplay" class="qr-display">
+            <p class="qr-placeholder">Esperando selección...</p>
+          </div>
+        </div>
+        <div class="resenas-panel">
+          <div class="resenas-stats" id="resenasStats"></div>
+          <div class="resenas-lista" id="resenasLista">
+            <button class="btn-primary" onclick="loadResenas()" style="margin:1rem auto;display:block">Cargar Evaluaciones</button>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══ FOOTER ═══ -->
+  <section id="contacto" class="section-contact" style="background-image: linear-gradient(rgba(248, 245, 241, 0.95), rgba(248, 245, 241, 0.95)), url('image_ac0068.jpg'); background-size: cover; background-position: center; border-top: 1px solid var(--border);">
+    <div class="container contact-container">
+        <div class="contact-info">
+            <h2 class="section-title" style="margin-bottom: 1rem; color: var(--text-color);">Visítanos</h2>
+            <p class="section-sub" style="margin-bottom: 2rem; text-align: left;">Las puertas de Los Consentidos están abiertas para brindarte el mejor servicio.</p>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <strong style="color: var(--accent-color); font-family: var(--heading-font); font-size: 1.5rem; display:block;">Dirección</strong>
+                <p>Sierravista Av, Lindavista Nte.<br>Gustavo A. Madero, 07300<br>Ciudad de México, CDMX</p>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <strong style="color: var(--accent-color); font-family: var(--heading-font); font-size: 1.5rem; display:block;">Teléfono</strong>
+                <p>55 7159 8946</p>
+            </div>
+            
+            <div>
+                <strong style="color: var(--accent-color); font-family: var(--heading-font); font-size: 1.5rem; display:block;">Horario de Atención</strong>
+                <ul style="list-style: none; padding: 0;">
+                    <li><strong>Lunes - Domingo:</strong> 8:00 a.m. – 5:30 p.m.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="contact-map" style="box-shadow: var(--shadow-lg); border-radius: var(--r-md); overflow: hidden;">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3761.543419985958!2d-99.1352466!3d19.4752538!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1f9746e555555%3A0x678765432!2sSierravista%2C%20Lindavista%2C%20Gustavo%20A.%20Madero%2C%2007300%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1ses-419!2smx!4v1716000000000!5m2!1ses-419!2smx" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+  </section>
+
   <footer class="footer">
-    <div class="footer-inner">
+    <div class="container footer-inner">
       <div class="footer-brand">
-        <span class="footer-logo">🌮 Los Consentidos</span>
-        <p>Sistema de gestión para meseros · ESCOM IPN 2026</p>
+        <span class="footer-logo">Los Consentidos</span>
+        <p>Elegancia y sabor en cada detalle.</p>
+        <p style="margin-top:1rem; opacity: 0.5;">Sistema de Gestión · 2026</p>
       </div>
       <div class="footer-links">
-        <a href="#menu">Menú</a>
-        <a href="#ordenes">Órdenes</a>
-        <a href="#inventario">Inventario</a>
-        <a href="#meseros">Meseros</a>
-        <a href="#mesas">Mesas</a>
-        <a href="#caja">Caja</a>
-        <a href="#resenas">Reseñas</a>
+        <a href="#menu">El Menú</a>
+        <a href="#ordenes">Servicio</a>
+        <a href="#inventario">Almacén</a>
+        <a href="#contacto">Contacto</a>
       </div>
       <div class="footer-info">
-        <p>Supabase · GitHub Pages</p>
-        <p>Práctica 5 · Bases de Datos · 3CV2</p>
+        <p>Desarrollado con Supabase & GitHub Pages</p>
+        <p>Proyecto IPN ESCOM</p>
       </div>
     </div>
   </footer>
 
-  <!-- ═══════════════════════════════════════════
-       MODAL — NUEVA ORDEN
-       Cambio: selector de empleado (DDL: empleado.id)
-       en lugar de campo numérico libre
-  ═══════════════════════════════════════════ -->
   <div class="modal-overlay" id="modalOrden" onclick="closeModalOutside(event,'modalOrden')">
     <div class="modal modal-lg">
       <button class="modal-close" onclick="closeModal('modalOrden')">✕</button>
-      <div class="modal-icon">🛒</div>
-      <h3 class="modal-title">Nueva orden</h3>
+      <h3 class="modal-title">Apertura de Orden</h3>
       <div class="orden-layout">
         <div class="orden-col-left">
           <div class="orden-meta">
-            <!-- DDL: orden.empleado es FK a empleado.id — usamos select -->
             <div class="meta-field">
-              <label>Empleado (mesero)</label>
-              <select id="ord-empleado-sel"
-                      style="width:100%;padding:0.75rem 1rem;border:2px solid var(--border);border-radius:var(--r-md);font-family:var(--font-body);font-size:14px;background:var(--crema)">
-                <option value="">— Selecciona empleado —</option>
+              <label>Colaborador Responsable</label>
+              <select id="ord-empleado-sel" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--r-md);font-family:var(--font-body);font-size:14px;background:#fff">
+                <option value="">— Asignar mesero —</option>
               </select>
             </div>
           </div>
           <div class="carrito-section">
             <div class="carrito-header">
-              <span>🧾 Orden actual</span>
+              <span>Detalle del Consumo</span>
               <button class="btn-limpiar" onclick="limpiarCarrito()">Limpiar</button>
             </div>
             <div id="carritoItems" class="carrito-items">
-              <p class="carrito-empty">Selecciona platillos del menú →</p>
+              <p class="carrito-empty">Selecciona platillos del panel derecho →</p>
             </div>
             <div class="carrito-total">
-              <span>Total:</span>
+              <span>Total Estimado:</span>
               <span id="carritoTotal" class="total-monto">$0.00</span>
             </div>
           </div>
         </div>
         <div class="orden-col-right">
           <div class="platillos-search-wrap">
-            <input type="text" id="platSearch" placeholder="🔍 Buscar platillo…" oninput="filtrarPlatillosOrden(this.value)"/>
+            <input type="text" id="platSearch" placeholder="Buscar platillo por nombre…" oninput="filtrarPlatillosOrden(this.value)"/>
           </div>
           <div id="platillosOrdenList" class="platillos-orden-list">
-            <p class="carrito-empty">Cargando platillos…</p>
+            <p class="carrito-empty">Sincronizando carta…</p>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal('modalOrden')">Cancelar</button>
-        <button class="btn-confirm" onclick="crearOrdenDesdeModal()">Enviar orden ✓</button>
+        <button class="btn-cancel" onclick="closeModal('modalOrden')">Descartar</button>
+        <button class="btn-confirm" onclick="crearOrdenDesdeModal()">Confirmar Orden</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL — NUEVO PLATILLO -->
   <div class="modal-overlay" id="modalPlatillo" onclick="closeModalOutside(event,'modalPlatillo')">
     <div class="modal">
       <button class="modal-close" onclick="closeModal('modalPlatillo')">✕</button>
-      <div class="modal-icon">🍽️</div>
-      <h3 class="modal-title">Nuevo platillo</h3>
+      <h3 class="modal-title">Registrar Platillo</h3>
       <div class="modal-body">
-        <label>Nombre del platillo</label>
-        <input type="text" id="plat-nombre" placeholder="Ej. Tacos de canasta"/>
-        <!-- DDL: categorias.id -->
+        <label>Nombre del Platillo</label>
+        <input type="text" id="plat-nombre" placeholder="Ej. Lomo al Horno"/>
         <label>Categoría</label>
-        <select id="plat-cat">
-          <option value="" disabled selected>Cargando…</option>
-        </select>
-        <label>Precio (MXN)</label>
+        <select id="plat-cat"><option value="" disabled selected>Cargando…</option></select>
+        <label>Precio de Venta (MXN)</label>
         <input type="number" id="plat-precio" placeholder="0.00" min="0" step="0.50"/>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modalPlatillo')">Cancelar</button>
-        <button class="btn-confirm" onclick="crearPlatillo()">Guardar ✓</button>
+        <button class="btn-confirm" onclick="crearPlatillo()">Guardar Cambios</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL — NUEVO INGREDIENTE
-       DDL: ingredientes (catálogo) + inventario (entradas)
-       El campo "existencia" aquí es la entrada inicial al inventario -->
   <div class="modal-overlay" id="modalIngrediente" onclick="closeModalOutside(event,'modalIngrediente')">
     <div class="modal">
       <button class="modal-close" onclick="closeModal('modalIngrediente')">✕</button>
-      <div class="modal-icon">🧺</div>
-      <h3 class="modal-title">Agregar ingrediente</h3>
+      <h3 class="modal-title">Alta de Insumo</h3>
       <div class="modal-body">
-        <label>Nombre</label>
-        <input type="text" id="ing-nombre" placeholder="Ej. Tomate Bola"/>
-        <label>Stock inicial (cantidad en inventario)</label>
+        <label>Descripción</label>
+        <input type="text" id="ing-nombre" placeholder="Ej. Aceite de Oliva Extra Virgen"/>
+        <label>Stock Inicial</label>
         <input type="number" id="ing-existencia" placeholder="0" min="0"/>
-        <label>Cantidad mínima de alerta</label>
+        <label>Nivel Mínimo de Alerta</label>
         <input type="number" id="ing-minimo" placeholder="0" min="0"/>
-        <label>Unidad</label>
+        <label>Unidad de Medida</label>
         <select id="ing-unidad">
           <option value="KG">KG — Kilogramos</option>
           <option value="PZ">PZ — Piezas</option>
@@ -375,138 +355,117 @@
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modalIngrediente')">Cancelar</button>
-        <button class="btn-confirm" onclick="crearIngrediente()">Guardar ✓</button>
+        <button class="btn-confirm" onclick="crearIngrediente()">Registrar Insumo</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL — NUEVO MESERO
-       DDL: tabla "empleado" — requiere nombre, paterno, telefono, rol
-       Se añadió turno como columna extra (ver TABLAS_SUPABASE_v2.sql) -->
   <div class="modal-overlay" id="modalMesero" onclick="closeModalOutside(event,'modalMesero')">
     <div class="modal">
       <button class="modal-close" onclick="closeModal('modalMesero')">✕</button>
-      <div class="modal-icon">👨‍💼</div>
-      <h3 class="modal-title">Nuevo mesero</h3>
+      <h3 class="modal-title">Ficha de Empleado</h3>
       <div class="modal-body">
         <label>Nombre(s)</label>
-        <input type="text" id="mes-nombre" placeholder="Ej. Juan"/>
-        <label>Apellido paterno</label>
-        <input type="text" id="mes-paterno" placeholder="Ej. Pérez"/>
-        <label>Teléfono (10 dígitos)</label>
+        <input type="text" id="mes-nombre" placeholder="Ej. Roberto"/>
+        <label>Apellido</label>
+        <input type="text" id="mes-paterno" placeholder="Ej. Mendoza"/>
+        <label>Teléfono de Contacto</label>
         <input type="tel" id="mes-telefono" placeholder="5512345678" maxlength="10"/>
-        <label>Rol</label>
-        <select id="mes-rol">
-          <option value="">Cargando roles…</option>
-        </select>
+        <label>Rol Asignado</label>
+        <select id="mes-rol"><option value="">Cargando catálogo…</option></select>
         <label>Turno</label>
         <select id="mes-turno">
-          <option value="Mañana">🌅 Mañana</option>
-          <option value="Tarde">🌤️ Tarde</option>
-          <option value="Noche">🌙 Noche</option>
+          <option value="Mañana">Apertura (Mañana)</option>
+          <option value="Tarde">Intermedio (Tarde)</option>
+          <option value="Noche">Cierre (Noche)</option>
         </select>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modalMesero')">Cancelar</button>
-        <button class="btn-confirm" onclick="crearMesero()">Registrar ✓</button>
+        <button class="btn-confirm" onclick="crearMesero()">Alta en Sistema</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL — DETALLE MESA -->
   <div class="modal-overlay" id="modalMesa" onclick="closeModalOutside(event,'modalMesa')">
     <div class="modal">
       <button class="modal-close" onclick="closeModal('modalMesa')">✕</button>
-      <div class="modal-icon">🍽️</div>
-      <h3 class="modal-title">Mesa ocupada</h3>
-      <div class="mesa-modal-info">
-        <div class="mesa-modal-num" id="mesaModalNum">Mesa —</div>
-        <div class="mesa-modal-tiempo" id="mesaModalTiempo"></div>
+      <h3 class="modal-title">Estado de la Mesa</h3>
+      <div class="mesa-modal-info" style="text-align:center; padding: 2rem 0;">
+        <div class="mesa-modal-num" id="mesaModalNum" style="font-family: var(--heading-font); font-size:2.5rem; color:var(--accent-color);">Mesa —</div>
+        <div class="mesa-modal-tiempo" id="mesaModalTiempo" style="color:var(--text-light); margin-top:0.5rem;"></div>
       </div>
-      <div class="mesa-modal-actions">
-        <button class="btn-secondary" onclick="closeModal('modalMesa')">Cerrar</button>
-        <button class="btn-primary" onclick="liberarMesaActual()">✅ Liberar mesa</button>
+      <div class="modal-footer" style="justify-content:center;">
+        <button class="btn-cancel" onclick="closeModal('modalMesa')">Cerrar</button>
+        <button class="btn-primary" onclick="liberarMesaActual()">Liberar Mesa</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL — PAGO (guarda en tabla "ingreso" del DDL) -->
   <div class="modal-overlay" id="modalPago" onclick="closeModalOutside(event,'modalPago')">
     <div class="modal">
       <button class="modal-close" onclick="closeModal('modalPago')">✕</button>
-      <div class="modal-icon">💳</div>
-      <h3 class="modal-title">Registrar cobro</h3>
+      <h3 class="modal-title">Liquidación de Cuenta</h3>
       <div class="modal-body">
-        <div style="text-align:center;margin-bottom:1rem">
-          <div style="font-size:2rem;font-family:var(--font-display);font-weight:900;color:var(--naranja)" id="pagoTotal">$0.00</div>
-          <div style="font-size:14px;color:var(--gris);margin-top:0.3rem" id="pagoPorPersona"></div>
+        <div style="text-align:center;margin-bottom:2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+          <div style="font-size:2.5rem;font-family:var(--heading-font);font-weight:700;color:var(--accent-color)" id="pagoTotal">$0.00</div>
+          <div style="font-size:14px;color:var(--text-light);margin-top:0.3rem" id="pagoPorPersona"></div>
         </div>
-        <label>Método de pago</label>
-        <div class="pago-metodos">
-          <button class="pago-metodo-btn selected" data-metodo="Efectivo" onclick="seleccionarMetodo('Efectivo')">
-            💵<span class="pago-metodo-label">Efectivo</span>
-          </button>
-          <button class="pago-metodo-btn" data-metodo="Tarjeta" onclick="seleccionarMetodo('Tarjeta')">
-            💳<span class="pago-metodo-label">Tarjeta</span>
-          </button>
-          <button class="pago-metodo-btn" data-metodo="Transferencia" onclick="seleccionarMetodo('Transferencia')">
-            📱<span class="pago-metodo-label">Transferencia</span>
-          </button>
+        <label>Método de Pago</label>
+        <div class="pago-metodos" style="display:flex; gap:1rem; margin-bottom: 1rem;">
+          <button class="btn-secondary pago-metodo-btn selected" style="flex:1;" data-metodo="Efectivo" onclick="seleccionarMetodo('Efectivo')">Efectivo</button>
+          <button class="btn-secondary pago-metodo-btn" style="flex:1;" data-metodo="Tarjeta" onclick="seleccionarMetodo('Tarjeta')">Tarjeta</button>
+          <button class="btn-secondary pago-metodo-btn" style="flex:1;" data-metodo="Transferencia" onclick="seleccionarMetodo('Transferencia')">Transf.</button>
         </div>
-        <label>Número de comensales (para dividir)</label>
+        <label>División de Cuenta (Comensales)</label>
         <input type="number" id="pagoComensales" value="1" min="1" max="20" oninput="actualizarDivision()"/>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modalPago')">Cancelar</button>
-        <button class="btn-confirm" onclick="procesarPago()">Confirmar cobro ✓</button>
+        <button class="btn-confirm" onclick="procesarPago()">Procesar Pago</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL — TICKET -->
   <div class="modal-overlay" id="modalTicket" onclick="closeModalOutside(event,'modalTicket')">
     <div class="modal">
       <button class="modal-close" onclick="closeModal('modalTicket')">✕</button>
-      <div class="modal-icon">🧾</div>
-      <h3 class="modal-title">Ticket de venta</h3>
-      <div class="ticket-preview" id="ticketContenido"></div>
+      <h3 class="modal-title">Comprobante</h3>
+      <div class="ticket-preview" id="ticketContenido" style="background:#f9f9f9; padding:2rem; border:1px solid #ddd; font-family: monospace;"></div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('modalTicket')">Cerrar</button>
-        <button class="btn-confirm" onclick="imprimirTicket()">🖨️ Imprimir</button>
+        <button class="btn-primary" onclick="imprimirTicket()">Imprimir Comprobante</button>
       </div>
     </div>
   </div>
 
-  <!-- PANEL — NOTIFICACIONES -->
   <div class="notif-panel" id="notifPanel">
     <div class="notif-header">
-      <span>🔔 Notificaciones</span>
-      <button onclick="toggleNotifPanel()">✕</button>
+      <span style="font-family:var(--heading-font); font-size:1.5rem; font-weight:600;">Alertas del Sistema</span>
+      <button onclick="toggleNotifPanel()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
     </div>
     <div class="notif-body" id="notifBody">
-      <p class="notif-empty">Sin alertas por ahora ✅</p>
+      <p class="notif-empty">Operación normal.</p>
     </div>
     <div class="notif-footer">
-      <button class="btn-secondary" onclick="checkNotificaciones()">🔄 Actualizar alertas</button>
+      <button class="btn-secondary" style="width:100%" onclick="checkNotificaciones()">Actualizar Alertas</button>
     </div>
   </div>
 
-  <!-- RESEÑA PÚBLICA (cuando cliente escanea el QR) -->
-  <div id="resenaPublicaOverlay" class="resena-publica-overlay" style="display:none">
-    <div class="resena-publica-card">
-      <div style="font-size:3rem">🌮</div>
-      <h2>Los Consentidos</h2>
-      <p id="resenaPublicaMesa" style="font-weight:700;color:var(--naranja);margin:0.5rem 0"></p>
-      <p style="color:var(--gris);font-size:14px;margin-bottom:0.5rem">¿Cómo fue tu experiencia?</p>
-      <div class="stars-selector">
-        <button class="star-btn" onclick="seleccionarEstrella(1)">☆</button>
-        <button class="star-btn" onclick="seleccionarEstrella(2)">☆</button>
-        <button class="star-btn" onclick="seleccionarEstrella(3)">☆</button>
-        <button class="star-btn" onclick="seleccionarEstrella(4)">☆</button>
-        <button class="star-btn" onclick="seleccionarEstrella(5)">☆</button>
+  <div id="resenaPublicaOverlay" class="resena-publica-overlay" style="display:none; position:fixed; inset:0; background:rgba(26,18,8,0.9); z-index:9999; align-items:center; justify-content:center;">
+    <div class="resena-publica-card" style="background:var(--primary-color); padding:3rem; border-radius:var(--r-lg); text-align:center; max-width:400px; width:90%;">
+      <h2 style="font-family:var(--heading-font); color:var(--accent-color); font-size:2.5rem; margin-bottom:0.5rem;">Los Consentidos</h2>
+      <p id="resenaPublicaMesa" style="font-weight:600; color:var(--text-color); margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:2px;"></p>
+      <p style="color:var(--text-light); margin-bottom:1rem;">Agradecemos su preferencia. ¿Cómo califica su experiencia hoy?</p>
+      <div class="stars-selector" style="font-size:2.5rem; margin-bottom:1.5rem; cursor:pointer; color:#ccc;">
+        <span class="star-btn" onclick="seleccionarEstrella(1)">★</span>
+        <span class="star-btn" onclick="seleccionarEstrella(2)">★</span>
+        <span class="star-btn" onclick="seleccionarEstrella(3)">★</span>
+        <span class="star-btn" onclick="seleccionarEstrella(4)">★</span>
+        <span class="star-btn" onclick="seleccionarEstrella(5)">★</span>
       </div>
-      <textarea id="resenaComentario" placeholder="Cuéntanos cómo estuvo… (opcional)"></textarea>
-      <button class="btn-primary" style="width:100%" onclick="enviarResenaPublica()">Enviar reseña ✓</button>
+      <textarea id="resenaComentario" placeholder="Comentarios adicionales (opcional)" style="width:100%; padding:1rem; border:1px solid #ddd; border-radius:var(--r-md); font-family:var(--font-body); margin-bottom:1.5rem; resize:vertical; min-height:80px;"></textarea>
+      <button class="btn-primary" style="width:100%" onclick="enviarResenaPublica()">Enviar Evaluación</button>
     </div>
   </div>
 
@@ -514,10 +473,8 @@
 
   <script src="config.js"></script>
   <script>
-    /* ── Wrapper para crearOrden usando el selector de empleado ── */
     function crearOrdenDesdeModal() {
       const sel = document.getElementById('ord-empleado-sel');
-      // Redirigir al id correcto que lee crearOrden()
       const hidden = document.getElementById('ord-empleado') || (() => {
         const el = document.createElement('input');
         el.type = 'hidden'; el.id = 'ord-empleado';
