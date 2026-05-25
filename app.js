@@ -1,39 +1,52 @@
 /* ═══════════════════════════════════════════════════
    app.js — Los Consentidos
    Backend: Supabase (PostgreSQL en la nube)
-   Sin PHP, sin servidor propio. Funciona en GitHub Pages.
+   Adaptado al esquema losconsentidos_ddl.sql
+   
+   MAPEO DE TABLAS:
+   ┌──────────────────────────────────────────────────┐
+   │  Tabla DDL          Columna PK / relevante        │
+   │  categorias         id, nombre                    │
+   │  platillo           id, nombre, precio, id_cate.. │
+   │  ingredientes       id, nombre, unidad, minimo    │
+   │  inventario         id, id_ingrediente, cantidad  │
+   │  empleado           id, nombre, paterno, telefono │
+   │  roles              id, nombre_rol                │
+   │  orden              id, fecha, empleado (FK)      │
+   │  detalle_orden      id, id_orden, id_platillo     │
+   │  ingreso            id, id_orden, monto, fecha    │
+   │  mesa*              id, numero, estado, ...       │
+   │  resena*            id, numero_mesa, calificacion │
+   │  (* tablas extra — ver TABLAS_SUPABASE_v2.sql)   │
+   └──────────────────────────────────────────────────┘
 ═══════════════════════════════════════════════════ */
 
-// ── Carrito de la orden activa ──────────────────────
-let carrito = {};          // { id_platillo: { nombre, precio, cantidad } }
-let allPlatillos    = [];
-let allCategorias   = [];
+// ── Estado global ────────────────────────────────────
+let carrito        = {};   // { id_platillo: { nombre, precio, cantidad } }
+let allPlatillos   = [];
+let allCategorias  = [];
 let allIngredientes = [];
-let currentFilter   = 'all';
-
-// ── Variables globales para mesas, meseros y otros ──
-let allMesas        = [];
+let currentFilter  = 'all';
+let allMesas       = [];
 let mesaSeleccionada = null;
-let allMeseros      = [];
-let allOrdenes      = [];
-let ordenActual     = null;
-let allNotificaciones = [];
-let metodoPageoSeleccionado = 'Efectivo';
-let comensalesActuales = 1;
+let allEmpleados   = [];   // era "allMeseros" — ahora usa tabla empleado
+let allRoles       = [];
+let allOrdenes     = [];
+let notifInterval  = null;
+let pagoMetodoActual = 'Efectivo';
+let pagoOrdenActual  = null;
+let pagoMontoActual  = 0;
 let estrellaSeleccionada = 0;
-let notifInterval   = null;
 
 /* ════════════════════════════════════════════════
-   SUPABASE — Cliente HTTP mínimo
-   Usamos la REST API directamente con fetch,
-   sin necesidad de instalar el SDK de npm.
+   SUPABASE — Cliente HTTP mínimo (sin SDK)
 ════════════════════════════════════════════════ */
 const sb = {
   headers: () => ({
-    'apikey': SUPABASE_KEY,
+    'apikey':        SUPABASE_KEY,
     'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation'
+    'Content-Type':  'application/json',
+    'Prefer':        'return=representation'
   }),
 
   async get(table, query = '') {
@@ -142,9 +155,9 @@ function limpiarCarrito() {
 }
 
 function renderCarrito() {
-  const wrap = document.getElementById('carritoItems');
+  const wrap    = document.getElementById('carritoItems');
   const totalEl = document.getElementById('carritoTotal');
-  const keys = Object.keys(carrito);
+  const keys    = Object.keys(carrito);
 
   if (!keys.length) {
     wrap.innerHTML = '<p class="carrito-empty">Selecciona platillos del menú →</p>';
@@ -155,7 +168,7 @@ function renderCarrito() {
   let total = 0;
   wrap.innerHTML = keys.map(id => {
     const item = carrito[id];
-    const sub = item.precio * item.cantidad;
+    const sub  = item.precio * item.cantidad;
     total += sub;
     return `
       <div class="carrito-item">
@@ -172,7 +185,6 @@ function renderCarrito() {
       </div>
     `;
   }).join('');
-
   totalEl.textContent = fmt(total);
 }
 
@@ -189,8 +201,9 @@ function renderPlatillosOrden(lista) {
     wrap.innerHTML = '<p class="carrito-empty">No se encontraron platillos.</p>';
     return;
   }
+  // DDL: platillo.id (no id_platillo)
   wrap.innerHTML = lista.map(p => `
-    <div class="plat-orden-item" onclick="agregarAlCarrito(${p.id_platillo}, '${esc(p.nombre)}', ${p.precio})">
+    <div class="plat-orden-item" onclick="agregarAlCarrito(${p.id}, '${esc(p.nombre)}', ${p.precio})">
       <div class="poi-info">
         <span class="poi-nombre">${esc(p.nombre)}</span>
         <span class="poi-cat">${esc(p.categoria || 'Sin categoría')}</span>
@@ -208,28 +221,33 @@ function renderPlatillosOrden(lista) {
 ════════════════════════════════════════════════ */
 async function loadStats() {
   try {
+    // DDL: tabla "categorias" (plural), PK "id"
+    // DDL: tabla "ingredientes" (plural), PK "id"
+    // DDL: tabla "orden", PK "id"
     const [plat, ord, ing] = await Promise.all([
-      sb.get('platillo', 'select=id_platillo'),
-      sb.get('orden', 'select=id_orden,fecha&fecha=eq.' + new Date().toISOString().slice(0,10)),
-      sb.get('ingrediente', 'select=id_ingrediente'),
+      sb.get('platillo',     'select=id'),
+      sb.get('orden',        'select=id,fecha&fecha=gte.' + new Date().toISOString().slice(0, 10)),
+      sb.get('ingredientes', 'select=id'),
     ]);
-    document.getElementById('statPlatillos').textContent   = plat.length;
-    document.getElementById('statOrdenes').textContent     = ord.length;
+    document.getElementById('statPlatillos').textContent    = plat.length;
+    document.getElementById('statOrdenes').textContent      = ord.length;
     document.getElementById('statIngredientes').textContent = ing.length;
-  } catch(e) { console.warn('Stats no disponibles'); }
+  } catch(e) { console.warn('Stats no disponibles', e); }
 }
 
 /* ════════════════════════════════════════════════
    CATEGORÍAS
+   DDL: tabla "categorias", PK "id", campo "nombre"
 ════════════════════════════════════════════════ */
 async function loadCategorias() {
   try {
-    allCategorias = await sb.get('categoria', 'select=id_categoria,nombre&order=nombre.asc');
-    
+    // DDL usa "categorias" (plural)
+    allCategorias = await sb.get('categorias', 'select=id,nombre&order=nombre.asc');
+
     // Llenar select del modal de platillo
     const sel = document.getElementById('plat-cat');
     sel.innerHTML = allCategorias.map(c =>
-      `<option value="${c.id_categoria}">${esc(c.nombre)}</option>`
+      `<option value="${c.id}">${esc(c.nombre)}</option>`
     ).join('');
 
     // Botones de filtro
@@ -237,7 +255,7 @@ async function loadCategorias() {
     wrap.innerHTML = `<button class="filter-btn active" data-filter="all">Todo 🌟</button>`;
     allCategorias.forEach(c => {
       const btn = document.createElement('button');
-      btn.className = 'filter-btn';
+      btn.className   = 'filter-btn';
       btn.dataset.filter = c.nombre;
       btn.textContent = c.nombre;
       wrap.appendChild(btn);
@@ -252,7 +270,6 @@ async function loadCategorias() {
     });
   } catch(e) {
     console.error('Error al cargar categorías:', e);
-    // Si no hay tabla CATEGORIA, dejamos un filtro genérico
     document.getElementById('menuFilters').innerHTML =
       `<button class="filter-btn active" data-filter="all">Todo 🌟</button>`;
   }
@@ -260,17 +277,19 @@ async function loadCategorias() {
 
 /* ════════════════════════════════════════════════
    MENÚ
+   DDL: platillo.id, platillo.precio, platillo.id_categorias → categorias.id
 ════════════════════════════════════════════════ */
 async function loadMenu() {
   try {
-    // Traer platillos y categorías por separado (evita problemas de JOIN en Supabase)
+    // DDL no tiene columna "frecuencia" — no la pedimos
     const [platillos, cats] = await Promise.all([
-      sb.get('platillo', 'select=id_platillo,nombre,precio,frecuencia,id_categorias&order=nombre.asc'),
-      sb.get('categoria', 'select=id_categoria,nombre')
+      sb.get('platillo',   'select=id,nombre,precio,id_categorias&order=nombre.asc'),
+      sb.get('categorias', 'select=id,nombre')
     ]);
-    // Mapear id_categorias → nombre
+
+    // Mapear id_categorias → nombre de categoría
     const catMap = {};
-    cats.forEach(c => { catMap[c.id_categoria] = c.nombre; });
+    cats.forEach(c => { catMap[c.id] = c.nombre; });
 
     allPlatillos = platillos.map(p => ({
       ...p,
@@ -286,24 +305,16 @@ async function loadMenu() {
 }
 
 const EMOJIS = {
-  'Tacos':      '🌮',
-  'Quesadilla': '🧀',
-  'Pozole':     '🍲',
-  'Agua':       '🥤',
-  'Enchilada':  '🌯',
-  'Flauta':     '🌯',
-  'Sopa':       '🍜',
-  'Chile':      '🌶️',
-  'default':    '🍽️'
+  'Tacos':      '🌮', 'Quesadilla': '🧀', 'Pozole': '🍲',
+  'Agua':       '🥤', 'Enchilada':  '🌯', 'Flauta': '🌯',
+  'Sopa':       '🍜', 'Chile':      '🌶️', 'default': '🍽️'
 };
-
 function getEmoji(nombre) {
   for (const [key, emoji] of Object.entries(EMOJIS)) {
     if (key !== 'default' && nombre.toLowerCase().includes(key.toLowerCase())) return emoji;
   }
   return EMOJIS.default;
 }
-
 function catClass(cat) {
   const c = (cat || '').toLowerCase();
   if (c.includes('entrada'))  return 'cat-entrada';
@@ -322,9 +333,9 @@ function renderMenu(platillos) {
     grid.innerHTML = '<div class="menu-loading"><p>No hay platillos en esta categoría 🍃</p></div>';
     return;
   }
-
+  // DDL: platillo.id (no id_platillo)
   grid.innerHTML = list.map(p => `
-    <div class="menu-card" onclick="agregarDesdeMenu(${p.id_platillo}, '${esc(p.nombre)}', ${p.precio})">
+    <div class="menu-card" onclick="agregarDesdeMenu(${p.id}, '${esc(p.nombre)}', ${p.precio})">
       <span class="menu-card-emoji">${getEmoji(p.nombre)}</span>
       <span class="menu-card-cat ${catClass(p.categoria)}">${esc(p.categoria)}</span>
       <h3>${esc(p.nombre)}</h3>
@@ -340,27 +351,24 @@ function renderMenu(platillos) {
 function agregarDesdeMenu(id, nombre, precio) {
   agregarAlCarrito(id, nombre, precio);
   showToast(`${nombre} agregado a la orden`);
-  // Si el modal ya está abierto no lo abras de nuevo
   const modal = document.getElementById('modalOrden');
-  if (!modal.classList.contains('open')) {
-    openModal('modalOrden');
-  }
+  if (!modal.classList.contains('open')) openModal('modalOrden');
 }
 
 async function crearPlatillo() {
-  const nombre = document.getElementById('plat-nombre').value.trim();
-  const cat_id = document.getElementById('plat-cat').value;
-  const precio = parseFloat(document.getElementById('plat-precio').value);
+  const nombre  = document.getElementById('plat-nombre').value.trim();
+  const cat_id  = document.getElementById('plat-cat').value;
+  const precio  = parseFloat(document.getElementById('plat-precio').value);
 
-  if (!nombre)              return showToast('El nombre es obligatorio', 'error');
-  if (isNaN(precio) || precio <= 0) return showToast('Ingresa un precio válido', 'error');
+  if (!nombre)                   return showToast('El nombre es obligatorio', 'error');
+  if (isNaN(precio) || precio < 0) return showToast('Ingresa un precio válido', 'error');
 
   try {
+    // DDL: no existe "frecuencia" en platillo — se omite
     await sb.post('platillo', {
       nombre,
       id_categorias: cat_id ? parseInt(cat_id) : null,
-      precio,
-      frecuencia: 0
+      precio
     });
     showToast('¡Platillo agregado al menú! 🎉');
     closeModal('modalPlatillo');
@@ -374,32 +382,57 @@ async function crearPlatillo() {
 
 /* ════════════════════════════════════════════════
    ÓRDENES
+   DDL: orden.id (no id_orden), orden.empleado → empleado.id
+        No existe orden.estado ni orden.cuenta_total
+        El total se calcula desde detalle_orden × platillo.precio
+        ingreso.id_orden registra el pago (reemplaza "pago" en v2)
 ════════════════════════════════════════════════ */
 async function loadOrdenes() {
   const grid = document.getElementById('ordenesGrid');
   grid.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto"></div><p style="margin-top:1rem">Cargando órdenes…</p></div>';
   try {
     const hoy = new Date().toISOString().slice(0, 10);
+
+    // Traer órdenes de hoy con su empleado y detalles
     const ordenes = await sb.get('orden',
-      `select=id_orden,fecha,estado,cuenta_total,numero_empleado_mesero&fecha=gte.${hoy}&order=id_orden.desc`
+      `select=id,fecha,empleado,detalle_orden(id,cantidad,platillo(id,nombre,precio))&fecha=gte.${hoy}&order=id.desc`
     );
+
+    // IDs de órdenes ya cobradas (tienen ingreso)
+    const ingresos = await sb.get('ingreso', `select=id_orden&fecha=gte.${hoy}T00:00:00`).catch(() => []);
+    const cobradas = new Set(ingresos.map(i => i.id_orden));
+
     if (!ordenes.length) {
       grid.innerHTML = '<div class="empty-state"><span class="empty-icon">🎉</span><p>Sin órdenes por ahora.</p></div>';
       return;
     }
-    grid.innerHTML = ordenes.map(o => `
-      <div class="orden-card ${o.estado ? 'servida' : ''}">
-        <div class="orden-header">
-          <div class="orden-mesa-num">Mesa — Emp. ${esc(String(o.numero_empleado_mesero))}</div>
-          <span class="badge ${o.estado ? 'badge-cerrada' : 'badge-activa'}">
-            ${o.estado ? '✓ Servida' : '● En proceso'}
-          </span>
+
+    // Mapeo de empleados para mostrar nombre
+    const empMap = {};
+    allEmpleados.forEach(e => { empMap[e.id] = `${e.nombre} ${e.paterno}`; });
+
+    grid.innerHTML = ordenes.map(o => {
+      const detalles  = o.detalle_orden || [];
+      const total     = detalles.reduce((s, d) => s + (d.platillo?.precio || 0) * d.cantidad, 0);
+      const cobrada   = cobradas.has(o.id);
+      const empNombre = empMap[o.empleado] || `Emp. #${o.empleado}`;
+      return `
+        <div class="orden-card ${cobrada ? 'servida' : ''}">
+          <div class="orden-header">
+            <div class="orden-mesa-num">👨‍💼 ${esc(empNombre)}</div>
+            <span class="badge ${cobrada ? 'badge-cerrada' : 'badge-activa'}">
+              ${cobrada ? '✓ Cobrada' : '● Pendiente'}
+            </span>
+          </div>
+          <div class="orden-total">${fmt(total)}</div>
+          <div class="orden-fecha">📅 ${new Date(o.fecha).toLocaleString('es-MX')}</div>
+          <div style="font-size:13px;color:var(--gris);margin-top:0.4rem">
+            ${detalles.map(d => `${d.cantidad}× ${esc(d.platillo?.nombre || '?')}`).join(', ')}
+          </div>
+          ${!cobrada ? `<button class="action-btn" style="margin-top:0.75rem" onclick="abrirModalPago(${o.id}, ${total})">💳 Registrar cobro</button>` : ''}
         </div>
-        <div class="orden-total">${fmt(o.cuenta_total || 0)}</div>
-        <div class="orden-fecha">📅 ${o.fecha}</div>
-        ${!o.estado ? `<button class="action-btn" style="margin-top:0.75rem" onclick="marcarServida(${o.id_orden})">Marcar como servida ✓</button>` : ''}
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch(e) {
     grid.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><p>Error al cargar las órdenes.</p></div>';
     console.error(e);
@@ -407,77 +440,68 @@ async function loadOrdenes() {
 }
 
 async function crearOrden() {
-  const empId   = document.getElementById('ord-empleado').value.trim();
-  const mesaNum = document.getElementById('ord-mesa').value.trim();
-  const items   = Object.entries(carrito);
+  // DDL: orden.empleado es el ID (INT) del empleado en la tabla empleado
+  const empId  = document.getElementById('ord-empleado').value.trim();
+  const items  = Object.entries(carrito);
 
-  if (!empId)         return showToast('Ingresa el número de empleado', 'error');
-  if (!mesaNum)       return showToast('Ingresa el número de mesa', 'error');
-  if (!items.length)  return showToast('Agrega al menos un platillo', 'error');
-
-  const cuenta_total = items.reduce((s, [, v]) => s + v.precio * v.cantidad, 0);
+  if (!empId)        return showToast('Selecciona un empleado', 'error');
+  if (!items.length) return showToast('Agrega al menos un platillo', 'error');
 
   try {
-    // 1. Crear la orden
+    // 1. Crear la cabecera de la orden — DDL: solo id, fecha, empleado
     const [orden] = await sb.post('orden', {
-      numero_empleado_mesero: parseInt(empId),
-      cuenta_total,
-      estado: false
+      empleado: parseInt(empId)
+      // fecha se pone sola con DEFAULT NOW()
     });
 
-    // 2. Crear el detalle de la orden (un registro por platillo)
+    // 2. Crear el detalle — DDL: id_orden refs orden.id, id_platillo refs platillo.id
     const detalles = items.map(([id, v]) => ({
-      id_orden:    orden.id_orden,
+      id_orden:    orden.id,
       id_platillo: parseInt(id),
       cantidad:    v.cantidad
     }));
     await sb.post('detalle_orden', detalles);
 
-    // 3. Incrementar frecuencia de cada platillo
-    for (const [id, v] of items) {
-      const plat = allPlatillos.find(p => p.id_platillo == id);
-      if (plat) {
-        await sb.patch('platillo', `id_platillo=eq.${id}`, {
-          frecuencia: (plat.frecuencia || 0) + v.cantidad
-        });
-      }
-    }
-
-    showToast(`Orden #${orden.id_orden} creada — ${fmt(cuenta_total)} 🛒`);
+    const total = items.reduce((s, [, v]) => s + v.precio * v.cantidad, 0);
+    showToast(`Orden #${orden.id} creada — ${fmt(total)} 🛒`);
     closeModal('modalOrden');
     limpiarCarrito();
     document.getElementById('ord-empleado').value = '';
-    document.getElementById('ord-mesa').value = '';
     loadOrdenes();
     loadStats();
-    loadMenu();
   } catch(e) {
     showToast('Error al crear la orden: ' + (e.message || JSON.stringify(e)), 'error');
     console.error(e);
   }
 }
 
-async function marcarServida(id) {
-  try {
-    await sb.patch('orden', `id_orden=eq.${id}`, { estado: true });
-    showToast('Orden marcada como servida ✓');
-    loadOrdenes();
-  } catch(e) {
-    showToast('Error al actualizar la orden', 'error');
-  }
-}
-
 /* ════════════════════════════════════════════════
    INVENTARIO
+   DDL: tabla "ingredientes" (plural), PK "id"
+        tabla "inventario": id, id_ingrediente, fecha, cantidad
+        No existe columna "existencia" — se suma desde inventario
 ════════════════════════════════════════════════ */
 async function loadInventario() {
   try {
-    const data = await sb.get('ingrediente',
-      'select=id_ingrediente,nombre,existencia,minimo,unidad&order=nombre.asc'
-    );
-    allIngredientes = data;
-    renderInventario(data);
-    renderStockAlerts(data);
+    // Traer ingredientes + suma de inventario agrupada
+    const [ings, inv] = await Promise.all([
+      sb.get('ingredientes', 'select=id,nombre,unidad,minimo&order=nombre.asc'),
+      sb.get('inventario',   'select=id_ingrediente,cantidad')
+    ]);
+
+    // Agrupar existencia total por ingrediente
+    const stockMap = {};
+    inv.forEach(r => {
+      stockMap[r.id_ingrediente] = (stockMap[r.id_ingrediente] || 0) + parseFloat(r.cantidad);
+    });
+
+    allIngredientes = ings.map(i => ({
+      ...i,
+      existencia: stockMap[i.id] || 0
+    }));
+
+    renderInventario(allIngredientes);
+    renderStockAlerts(allIngredientes);
   } catch(e) {
     document.getElementById('invBody').innerHTML =
       '<tr><td colspan="6" class="table-empty">⚠️ Error al cargar el inventario.</td></tr>';
@@ -487,8 +511,8 @@ async function loadInventario() {
 
 function renderStockAlerts(items) {
   const wrap  = document.getElementById('stockAlerts');
-  const low   = items.filter(i => parseFloat(i.existencia) > 0 && parseFloat(i.existencia) < parseFloat(i.minimo));
-  const empty = items.filter(i => parseFloat(i.existencia) <= 0);
+  const low   = items.filter(i => i.existencia > 0 && i.existencia < parseFloat(i.minimo));
+  const empty = items.filter(i => i.existencia <= 0);
   let html = '';
   empty.forEach(i => { html += `<div class="alert-card danger">❌ <strong>${esc(i.nombre)}</strong> — AGOTADO</div>`; });
   low.forEach(i =>   { html += `<div class="alert-card">⚠️ <strong>${esc(i.nombre)}</strong> — Bajo (${i.existencia} ${i.unidad})</div>`; });
@@ -504,9 +528,9 @@ function renderInventario(items) {
   tbody.innerHTML = items.map(i => {
     const ex = parseFloat(i.existencia), mn = parseFloat(i.minimo);
     let sc, sl;
-    if (ex <= 0)       { sc = 'empty'; sl = '❌ Agotado'; }
-    else if (ex < mn)  { sc = 'low';   sl = '⚠️ Bajo'; }
-    else               { sc = 'ok';    sl = '✅ OK'; }
+    if (ex <= 0)      { sc = 'empty'; sl = '❌ Agotado'; }
+    else if (ex < mn) { sc = 'low';   sl = '⚠️ Bajo'; }
+    else              { sc = 'ok';    sl = '✅ OK'; }
     return `
       <tr>
         <td><strong>${esc(i.nombre)}</strong></td>
@@ -515,8 +539,8 @@ function renderInventario(items) {
         <td>${esc(i.unidad)}</td>
         <td><span class="stock-pill ${sc}">${sl}</span></td>
         <td>
-          <button class="action-btn" onclick="editarStock(${i.id_ingrediente}, ${i.existencia})">Ajustar</button>
-          <button class="action-btn del" onclick="eliminarIngrediente(${i.id_ingrediente})">Eliminar</button>
+          <button class="action-btn" onclick="agregarStock(${i.id}, ${i.existencia})">+ Stock</button>
+          <button class="action-btn del" onclick="eliminarIngrediente(${i.id})">Eliminar</button>
         </td>
       </tr>`;
   }).join('');
@@ -529,18 +553,25 @@ function filterInventario(q) {
 }
 
 async function crearIngrediente() {
-  const nombre    = document.getElementById('ing-nombre').value.trim();
-  const existencia = Number(document.getElementById('ing-existencia').value);
-  const minimo    = Number(document.getElementById('ing-minimo').value);
-  const unidad    = document.getElementById('ing-unidad').value;
+  const nombre   = document.getElementById('ing-nombre').value.trim();
+  const cantidad = Number(document.getElementById('ing-existencia').value);
+  const minimo   = Number(document.getElementById('ing-minimo').value);
+  const unidad   = document.getElementById('ing-unidad').value;
 
   if (!nombre) return showToast('El nombre es obligatorio', 'error');
 
   try {
-    await sb.post('ingrediente', { nombre, existencia, minimo, unidad });
+    // DDL: insertar en "ingredientes" (catálogo)
+    const [ing] = await sb.post('ingredientes', { nombre, unidad, minimo });
+
+    // Si hay stock inicial, crear registro en inventario
+    if (cantidad > 0) {
+      await sb.post('inventario', { id_ingrediente: ing.id, cantidad });
+    }
+
     showToast('¡Ingrediente registrado! 🧺');
     closeModal('modalIngrediente');
-    ['ing-nombre','ing-existencia','ing-minimo'].forEach(id =>
+    ['ing-nombre', 'ing-existencia', 'ing-minimo'].forEach(id =>
       document.getElementById(id).value = ''
     );
     loadInventario(); loadStats();
@@ -549,22 +580,26 @@ async function crearIngrediente() {
   }
 }
 
-async function editarStock(id, actual) {
-  const nuevo = prompt(`Stock actual: ${actual}\nIngresa el stock físico real:`);
-  if (nuevo === null || nuevo.trim() === '') return;
+async function agregarStock(idIngrediente, actual) {
+  // En lugar de editar directamente, se inserta un nuevo registro en inventario
+  const entrada = prompt(`Stock actual acumulado: ${actual}\nIngresa la cantidad a AÑADIR:`);
+  if (entrada === null || entrada.trim() === '') return;
+  const cant = Number(entrada);
+  if (cant <= 0) return showToast('La cantidad debe ser mayor a 0', 'error');
   try {
-    await sb.patch('ingrediente', `id_ingrediente=eq.${id}`, { existencia: Number(nuevo) });
-    showToast('Ajuste aplicado ✓');
+    await sb.post('inventario', { id_ingrediente: idIngrediente, cantidad: cant });
+    showToast('Stock actualizado ✓');
     loadInventario();
   } catch(e) {
-    showToast('Error al ajustar', 'error');
+    showToast('Error al ajustar stock', 'error');
   }
 }
 
 async function eliminarIngrediente(id) {
-  if (!confirm('¿Eliminar este ingrediente del catálogo?')) return;
+  if (!confirm('¿Eliminar este ingrediente? Se borrarán también sus entradas de inventario.')) return;
   try {
-    await sb.delete('ingrediente', `id_ingrediente=eq.${id}`);
+    // inventario tiene ON DELETE CASCADE desde ingredientes
+    await sb.delete('ingredientes', `id=eq.${id}`);
     showToast('Ingrediente eliminado');
     loadInventario(); loadStats();
   } catch(e) {
@@ -573,30 +608,8 @@ async function eliminarIngrediente(id) {
 }
 
 /* ════════════════════════════════════════════════
-   ARRANQUE
-════════════════════════════════════════════════ */
-async function init() {
-  // Verificar que config.js tenga las credenciales reales
-  if (SUPABASE_URL.includes('TU_PROYECTO') || SUPABASE_KEY.includes('TU_ANON_KEY')) {
-    document.getElementById('menuGrid').innerHTML = `
-      <div class="menu-loading" style="grid-column:1/-1;padding:4rem;text-align:center">
-        <p style="font-size:2rem">⚙️</p>
-        <p style="font-weight:700;margin-top:1rem;color:#E63946">Configura Supabase primero</p>
-        <p style="color:#6B6558;margin-top:.5rem">Edita el archivo <code>config.js</code> con tus credenciales de Supabase.</p>
-      </div>`;
-    return;
-  }
-  await loadCategorias();
-  loadMenu();
-  loadStats();
-  loadOrdenes();
-}
-
-/* ════════════════════════════════════════════════
    NOTIFICACIONES
 ════════════════════════════════════════════════ */
-let notifInterval = null;
-
 function toggleNotifPanel() {
   const panel = document.getElementById('notifPanel');
   panel.classList.toggle('open');
@@ -606,28 +619,30 @@ function toggleNotifPanel() {
 async function checkNotificaciones() {
   try {
     const alertas = [];
-    const hoy = new Date().toISOString().slice(0,10);
-    const hace30 = new Date(Date.now() - 30*60*1000).toISOString();
+    const hoy     = new Date().toISOString().slice(0, 10);
 
-    // Órdenes tardando más de 30 min sin servir
-    const tardes = await sb.get('orden',
-      `select=id_orden,fecha,cuenta_total&estado=eq.false&fecha=gte.${hoy}&created_at=lt.${hace30}`
-    ).catch(() => []);
-    tardes.forEach(o => alertas.push({
-      tipo: 'danger',
-      titulo: `⏰ Orden #${o.id_orden} — más de 30 min sin servir`,
-      sub: `Total: ${fmt(o.cuenta_total || 0)}`
-    }));
-
-    // Ingredientes con stock bajo
-    const stockBajo = await sb.get('ingrediente',
-      'select=nombre,existencia,minimo,unidad&order=nombre.asc'
-    ).catch(() => []);
-    stockBajo.forEach(i => {
-      const ex = parseFloat(i.existencia), mn = parseFloat(i.minimo);
-      if (ex <= 0) alertas.push({ tipo: 'danger', titulo: `❌ ${i.nombre} — AGOTADO`, sub: 'Reabastecer urgente' });
+    // Ingredientes con stock bajo (calculado desde inventario)
+    const [ings, inv] = await Promise.all([
+      sb.get('ingredientes', 'select=id,nombre,unidad,minimo').catch(() => []),
+      sb.get('inventario',   'select=id_ingrediente,cantidad').catch(() => [])
+    ]);
+    const stockMap = {};
+    inv.forEach(r => { stockMap[r.id_ingrediente] = (stockMap[r.id_ingrediente] || 0) + parseFloat(r.cantidad); });
+    ings.forEach(i => {
+      const ex = stockMap[i.id] || 0;
+      const mn = parseFloat(i.minimo);
+      if (ex <= 0)      alertas.push({ tipo: 'danger',  titulo: `❌ ${i.nombre} — AGOTADO`,    sub: 'Reabastecer urgente' });
       else if (ex < mn) alertas.push({ tipo: 'warning', titulo: `⚠️ ${i.nombre} — Stock bajo`, sub: `${ex} ${i.unidad} (mín ${mn})` });
     });
+
+    // Órdenes de hoy sin ingreso asociado (pendientes de cobro)
+    const ordenes  = await sb.get('orden',   `select=id&fecha=gte.${hoy}`).catch(() => []);
+    const ingresos = await sb.get('ingreso', `select=id_orden&fecha=gte.${hoy}T00:00:00`).catch(() => []);
+    const cobradas = new Set(ingresos.map(i => i.id_orden));
+    const pendientes = ordenes.filter(o => !cobradas.has(o.id));
+    if (pendientes.length > 0) {
+      alertas.push({ tipo: 'warning', titulo: `💳 ${pendientes.length} orden(es) sin cobrar`, sub: 'Revisa la sección Órdenes' });
+    }
 
     renderNotificaciones(alertas);
     const badge = document.getElementById('notifBadge');
@@ -655,54 +670,61 @@ function renderNotificaciones(alertas) {
 }
 
 /* ════════════════════════════════════════════════
-   MESEROS
+   EMPLEADOS (antes "Meseros")
+   DDL: empleado.id, nombre, paterno, materno, telefono,
+        fecha_ingreso, fecha_egreso, rol (FK a roles.id)
+   ⚠️  No existe "turno" en DDL — se agrega como columna
+       adicional en TABLAS_SUPABASE_v2.sql
 ════════════════════════════════════════════════ */
-let allMeseros = [];
-
 async function loadMeseros() {
   const grid = document.getElementById('mesesGrid');
   grid.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto"></div><p style="margin-top:1rem">Cargando meseros…</p></div>';
   try {
-    const [meseros, ordenes] = await Promise.all([
-      sb.get('mesero', 'select=id_mesero,nombre,numero_empleado,turno&order=nombre.asc'),
-      sb.get('orden', `select=id_orden,numero_empleado_mesero&fecha=gte.${new Date().toISOString().slice(0,10)}`)
+    const [empleados, roles, ordenes] = await Promise.all([
+      sb.get('empleado', 'select=id,nombre,paterno,telefono,fecha_ingreso,turno,rol&fecha_egreso=is.null&order=nombre.asc'),
+      sb.get('roles',    'select=id,nombre_rol'),
+      sb.get('orden',    `select=id,empleado&fecha=gte.${new Date().toISOString().slice(0,10)}`)
     ]);
-    allMeseros = meseros;
 
-    // Contar órdenes por mesero hoy
+    allEmpleados = empleados;
+    const rolMap = {};
+    roles.forEach(r => { rolMap[r.id] = r.nombre_rol; });
+
+    // Contar órdenes por empleado hoy
     const countMap = {};
-    ordenes.forEach(o => {
-      countMap[o.numero_empleado_mesero] = (countMap[o.numero_empleado_mesero] || 0) + 1;
-    });
+    ordenes.forEach(o => { countMap[o.empleado] = (countMap[o.empleado] || 0) + 1; });
 
     // Stats bar
-    const stats = document.getElementById('mesesStats');
+    const stats  = document.getElementById('mesesStats');
     const turnos = { 'Mañana': 0, 'Tarde': 0, 'Noche': 0 };
-    meseros.forEach(m => { if (turnos[m.turno] !== undefined) turnos[m.turno]++; });
+    empleados.forEach(m => { if (m.turno && turnos[m.turno] !== undefined) turnos[m.turno]++; });
     stats.innerHTML = `
-      <div class="mesero-stat"><span class="ms-icon">👥</span> <span>${meseros.length} meseros totales</span></div>
+      <div class="mesero-stat"><span class="ms-icon">👥</span> <span>${empleados.length} meseros activos</span></div>
       <div class="mesero-stat"><span class="ms-icon">🌅</span> <span>${turnos['Mañana']} Mañana</span></div>
       <div class="mesero-stat"><span class="ms-icon">🌤️</span> <span>${turnos['Tarde']} Tarde</span></div>
       <div class="mesero-stat"><span class="ms-icon">🌙</span> <span>${turnos['Noche']} Noche</span></div>
     `;
 
-    if (!meseros.length) {
-      grid.innerHTML = '<div class="empty-state"><span class="empty-icon">👨‍💼</span><p>No hay meseros registrados.</p></div>';
+    if (!empleados.length) {
+      grid.innerHTML = '<div class="empty-state"><span class="empty-icon">👨‍💼</span><p>No hay meseros activos.</p></div>';
       return;
     }
-    const turnoClass = { 'Mañana':'turno-M', 'Tarde':'turno-T', 'Noche':'turno-N' };
-    grid.innerHTML = meseros.map(m => `
+
+    const turnoClass = { 'Mañana': 'turno-M', 'Tarde': 'turno-T', 'Noche': 'turno-N' };
+    grid.innerHTML = empleados.map(m => `
       <div class="mesero-card">
-        <button class="mesero-delete" onclick="eliminarMesero(${m.id_mesero})" title="Eliminar">🗑️</button>
+        <button class="mesero-delete" onclick="darBajaEmpleado(${m.id})" title="Dar de baja">🗑️</button>
         <div class="mesero-avatar">👨‍💼</div>
-        <div class="mesero-nombre">${esc(m.nombre)}</div>
-        <div class="mesero-num">Empleado #${m.numero_empleado}</div>
-        <span class="mesero-turno ${turnoClass[m.turno] || 'turno-M'}">${m.turno}</span>
-        <div class="mesero-ordenes">📋 ${countMap[m.numero_empleado] || 0} órdenes hoy</div>
+        <div class="mesero-nombre">${esc(m.nombre)} ${esc(m.paterno)}</div>
+        <div class="mesero-num">Tel: ${esc(m.telefono)}</div>
+        <span class="mesero-turno ${turnoClass[m.turno] || 'turno-M'}">${m.turno || '—'}</span>
+        <div style="font-size:12px;color:var(--gris);margin-top:0.3rem">${esc(rolMap[m.rol] || 'Sin rol')}</div>
+        <div class="mesero-ordenes">📋 ${countMap[m.id] || 0} órdenes hoy</div>
       </div>
     `).join('');
 
-    // Actualizar selector de QR de mesas
+    // Poblar selector de empleado en modal de orden
+    poblarSelectorEmpleado(empleados);
     poblarSelectores();
   } catch(e) {
     grid.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><p>Error al cargar meseros.</p></div>';
@@ -710,48 +732,83 @@ async function loadMeseros() {
   }
 }
 
+function poblarSelectorEmpleado(empleados) {
+  const sel = document.getElementById('ord-empleado-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Selecciona empleado —</option>' +
+    empleados.map(e => `<option value="${e.id}">${esc(e.nombre)} ${esc(e.paterno)}</option>`).join('');
+}
+
 async function crearMesero() {
-  const nombre = document.getElementById('mes-nombre').value.trim();
-  const numero = parseInt(document.getElementById('mes-numero').value);
-  const turno  = document.getElementById('mes-turno').value;
-  if (!nombre) return showToast('El nombre es obligatorio', 'error');
-  if (!numero) return showToast('Ingresa un número de empleado', 'error');
+  const nombre   = document.getElementById('mes-nombre').value.trim();
+  const paterno  = document.getElementById('mes-paterno').value.trim();
+  const telefono = document.getElementById('mes-telefono').value.trim();
+  const turno    = document.getElementById('mes-turno').value;
+  const rolId    = document.getElementById('mes-rol').value;
+
+  if (!nombre)   return showToast('El nombre es obligatorio', 'error');
+  if (!paterno)  return showToast('El apellido es obligatorio', 'error');
+  if (!telefono || telefono.length !== 10) return showToast('Ingresa un teléfono de 10 dígitos', 'error');
+  if (!rolId)    return showToast('Selecciona un rol', 'error');
+
   try {
-    await sb.post('mesero', { nombre, numero_empleado: numero, turno });
+    // DDL: empleado requiere nombre, paterno, telefono, fecha_ingreso, rol
+    // turno se agrega en TABLAS_SUPABASE_v2.sql como ALTER TABLE
+    await sb.post('empleado', {
+      nombre,
+      paterno,
+      materno:       null,
+      telefono,
+      fecha_ingreso: new Date().toISOString().slice(0, 10),
+      rol:           parseInt(rolId),
+      turno
+    });
     showToast(`¡Mesero ${nombre} registrado! 👨‍💼`);
     closeModal('modalMesero');
-    document.getElementById('mes-nombre').value = '';
-    document.getElementById('mes-numero').value = '';
+    ['mes-nombre', 'mes-paterno', 'mes-telefono'].forEach(id =>
+      document.getElementById(id).value = ''
+    );
     loadMeseros();
   } catch(e) {
     showToast('Error: ' + (e.message || JSON.stringify(e)), 'error');
   }
 }
 
-async function eliminarMesero(id) {
-  if (!confirm('¿Eliminar este mesero del registro?')) return;
+async function darBajaEmpleado(id) {
+  if (!confirm('¿Dar de baja a este empleado? Se registrará la fecha de egreso.')) return;
   try {
-    await sb.delete('mesero', `id_mesero=eq.${id}`);
-    showToast('Mesero eliminado');
+    // DDL: baja lógica — se llena fecha_egreso en lugar de borrar
+    await sb.patch('empleado', `id=eq.${id}`, {
+      fecha_egreso: new Date().toISOString().slice(0, 10)
+    });
+    showToast('Empleado dado de baja');
     loadMeseros();
   } catch(e) {
-    showToast('Error al eliminar', 'error');
+    showToast('Error al dar de baja', 'error');
   }
+}
+
+async function cargarRolesEnModal() {
+  try {
+    const roles = await sb.get('roles', 'select=id,nombre_rol&order=nombre_rol.asc');
+    const sel   = document.getElementById('mes-rol');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Selecciona rol —</option>' +
+      roles.map(r => `<option value="${r.id}">${esc(r.nombre_rol)}</option>`).join('');
+  } catch(e) { console.warn('Error al cargar roles', e); }
 }
 
 /* ════════════════════════════════════════════════
    MESAS — Mapa visual
+   DDL: tabla "mesa" — ver TABLAS_SUPABASE_v2.sql
 ════════════════════════════════════════════════ */
-let allMesas = [];
-let mesaSeleccionada = null;
-
 async function loadMesas() {
   try {
     allMesas = await sb.get('mesa', 'select=id_mesa,numero,estado,id_orden_activa,hora_ocupada&order=numero.asc');
     renderMesas();
   } catch(e) {
     console.error('Error al cargar mesas:', e);
-    showToast('Error al cargar mesas', 'error');
+    showToast('Error al cargar mesas. ¿Corriste TABLAS_SUPABASE_v2.sql?', 'error');
   }
 }
 
@@ -786,15 +843,13 @@ function clickMesa(idMesa) {
   if (!mesa) return;
   mesaSeleccionada = mesa;
   if (mesa.estado) {
-    // Mostrar opciones para mesa ocupada
     const mins = mesa.hora_ocupada
       ? Math.floor((Date.now() - new Date(mesa.hora_ocupada)) / 60000) : 0;
-    document.getElementById('mesaModalNum').textContent = `Mesa ${mesa.numero}`;
+    document.getElementById('mesaModalNum').textContent    = `Mesa ${mesa.numero}`;
     document.getElementById('mesaModalTiempo').textContent = mesa.hora_ocupada
       ? `Ocupada hace ${mins} minutos` : 'Ocupada';
     openModal('modalMesa');
   } else {
-    // Ocupar mesa
     if (confirm(`¿Ocupar Mesa ${mesa.numero}?`)) ocuparMesa(idMesa);
   }
 }
@@ -802,7 +857,7 @@ function clickMesa(idMesa) {
 async function ocuparMesa(idMesa) {
   try {
     await sb.patch('mesa', `id_mesa=eq.${idMesa}`, {
-      estado: true,
+      estado:      true,
       hora_ocupada: new Date().toISOString()
     });
     showToast('Mesa marcada como ocupada 🍽️');
@@ -814,9 +869,9 @@ async function liberarMesaActual() {
   if (!mesaSeleccionada) return;
   try {
     await sb.patch('mesa', `id_mesa=eq.${mesaSeleccionada.id_mesa}`, {
-      estado: false,
+      estado:          false,
       id_orden_activa: null,
-      hora_ocupada: null
+      hora_ocupada:    null
     });
     showToast(`Mesa ${mesaSeleccionada.numero} liberada ✅`);
     closeModal('modalMesa');
@@ -827,7 +882,7 @@ async function liberarMesaActual() {
 async function inicializarMesas() {
   if (!confirm('¿Crear 12 mesas en la base de datos? (Solo si no existen)')) return;
   try {
-    const datos = Array.from({length: 12}, (_, i) => ({ numero: i + 1, estado: false }));
+    const datos = Array.from({ length: 12 }, (_, i) => ({ numero: i + 1, estado: false }));
     await sb.post('mesa', datos);
     showToast('12 mesas creadas ✅');
     loadMesas();
@@ -839,60 +894,68 @@ async function inicializarMesas() {
 
 /* ════════════════════════════════════════════════
    CAJA / COBRO
+   DDL: tabla "ingreso" (no "pago")
+        ingreso.id_orden → orden.id
+        ingreso.monto, ingreso.fecha
+   Tabla "pago" en TABLAS_SUPABASE_v2.sql es alias
+   de ingreso con columna extra "metodo"
 ════════════════════════════════════════════════ */
-let ordenParaCobrar = null;
-
 async function loadCaja() {
   const grid = document.getElementById('cajaGrid');
   grid.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto"></div><p style="margin-top:1rem">Cargando órdenes…</p></div>';
   try {
     const hoy = new Date().toISOString().slice(0, 10);
-    // Órdenes servidas que no tienen pago aún
+
+    // Traer órdenes de hoy con detalle para calcular total
     const ordenes = await sb.get('orden',
-      `select=id_orden,fecha,estado,cuenta_total,numero_empleado_mesero&estado=eq.true&fecha=gte.${hoy}&order=id_orden.desc`
+      `select=id,fecha,empleado,detalle_orden(id,cantidad,platillo(id,nombre,precio))&fecha=gte.${hoy}&order=id.desc`
     );
-    // Órdenes ya pagadas
-    const pagos = await sb.get('pago', `select=id_orden&fecha=gte.${hoy}T00:00:00`).catch(() => []);
-    const pagadasIds = new Set(pagos.map(p => p.id_orden));
-    const pendientes = ordenes.filter(o => !pagadasIds.has(o.id_orden));
+
+    // Órdenes ya con ingreso registrado
+    const ingresos   = await sb.get('ingreso', `select=id_orden&fecha=gte.${hoy}T00:00:00`).catch(() => []);
+    const cobradas   = new Set(ingresos.map(i => i.id_orden));
+    const pendientes = ordenes.filter(o => !cobradas.has(o.id));
 
     if (!pendientes.length) {
       grid.innerHTML = '<div class="empty-state"><span class="empty-icon">🎉</span><p>Sin órdenes pendientes de cobro.</p></div>';
       return;
     }
-    grid.innerHTML = pendientes.map(o => `
-      <div class="caja-card">
-        <div class="caja-card-header">
-          <div class="caja-orden-num">Orden #${o.id_orden}</div>
-          <span class="caja-badge">✓ Servida</span>
+
+    const empMap = {};
+    allEmpleados.forEach(e => { empMap[e.id] = `${e.nombre} ${e.paterno}`; });
+
+    grid.innerHTML = pendientes.map(o => {
+      const detalles = o.detalle_orden || [];
+      const total    = detalles.reduce((s, d) => s + (d.platillo?.precio || 0) * d.cantidad, 0);
+      return `
+        <div class="caja-card">
+          <div class="caja-card-header">
+            <div class="caja-orden-num">Orden #${o.id}</div>
+            <span class="caja-badge">⏳ Pendiente</span>
+          </div>
+          <div class="caja-info">👨‍💼 ${esc(empMap[o.empleado] || 'Emp. #' + o.empleado)}</div>
+          <div class="caja-info">📅 ${new Date(o.fecha).toLocaleString('es-MX')}</div>
+          <div class="caja-total">${fmt(total)}</div>
+          <div class="caja-actions">
+            <button class="btn-primary" onclick="abrirModalPago(${o.id}, ${total})">💳 Cobrar</button>
+            <button class="btn-secondary" onclick="verTicket(${o.id}, ${total})">🧾 Ticket</button>
+          </div>
         </div>
-        <div class="caja-info">👨‍💼 Empleado #${o.numero_empleado_mesero}</div>
-        <div class="caja-info">📅 ${o.fecha}</div>
-        <div class="caja-total">${fmt(o.cuenta_total || 0)}</div>
-        <div class="caja-actions">
-          <button class="btn-primary" onclick="abrirModalPago(${o.id_orden}, ${o.cuenta_total})">💳 Cobrar</button>
-          <button class="btn-secondary" onclick="verTicket(${o.id_orden}, ${o.cuenta_total})">🧾 Ticket</button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch(e) {
     grid.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><p>Error al cargar la caja.</p></div>';
     console.error(e);
   }
 }
 
-let pagoMetodoActual = 'Efectivo';
-let pagoOrdenActual  = null;
-let pagoMontoActual  = 0;
-
 function abrirModalPago(idOrden, total) {
   pagoOrdenActual = idOrden;
   pagoMontoActual = total;
   pagoMetodoActual = 'Efectivo';
   document.getElementById('pagoTotal').textContent = fmt(total);
-  document.getElementById('pagoComensales').value = 1;
+  document.getElementById('pagoComensales').value  = 1;
   actualizarDivision();
-  // reset métodos
   document.querySelectorAll('.pago-metodo-btn').forEach(b => b.classList.remove('selected'));
   document.querySelector('.pago-metodo-btn[data-metodo="Efectivo"]').classList.add('selected');
   openModal('modalPago');
@@ -915,22 +978,37 @@ async function procesarPago() {
   if (!pagoOrdenActual) return;
   const comensales = parseInt(document.getElementById('pagoComensales').value) || 1;
   try {
-    await sb.post('pago', {
+    // DDL: tabla "ingreso" tiene id_orden y monto
+    // metodo y comensales se guardan si se añadió la columna extra (ver TABLAS_SUPABASE_v2.sql)
+    await sb.post('ingreso', {
       id_orden: pagoOrdenActual,
-      metodo: pagoMetodoActual,
-      monto: pagoMontoActual,
-      comensales
+      monto:    pagoMontoActual,
+      metodo:   pagoMetodoActual,   // columna extra — ver SQL
+      comensales                     // columna extra — ver SQL
     });
-    showToast(`✅ Pago registrado — ${pagoMetodoActual} — ${fmt(pagoMontoActual)}`);
+    showToast(`✅ Cobro registrado — ${pagoMetodoActual} — ${fmt(pagoMontoActual)}`);
     closeModal('modalPago');
     loadCaja();
+    loadOrdenes();
   } catch(e) {
-    showToast('Error al registrar el pago: ' + (e.message || JSON.stringify(e)), 'error');
+    showToast('Error al registrar el cobro: ' + (e.message || JSON.stringify(e)), 'error');
   }
 }
 
 async function verTicket(idOrden, total) {
   const ticket = document.getElementById('ticketContenido');
+
+  // Traer detalle de la orden para imprimir cada platillo
+  let lineasDetalle = '';
+  try {
+    const detalles = await sb.get('detalle_orden',
+      `select=cantidad,platillo(nombre,precio)&id_orden=eq.${idOrden}`
+    );
+    lineasDetalle = detalles.map(d =>
+      `<div class="ticket-line"><span>${d.cantidad}× ${esc(d.platillo?.nombre || '?')}</span><span>${fmt((d.platillo?.precio || 0) * d.cantidad)}</span></div>`
+    ).join('');
+  } catch(e) { lineasDetalle = ''; }
+
   ticket.innerHTML = `
     <div style="text-align:center;margin-bottom:0.5rem">
       <strong>🌮 LOS CONSENTIDOS</strong><br>
@@ -939,6 +1017,8 @@ async function verTicket(idOrden, total) {
     </div>
     <hr class="ticket-divider">
     <div class="ticket-line"><span>Orden:</span><span>#${idOrden}</span></div>
+    <hr class="ticket-divider">
+    ${lineasDetalle}
     <hr class="ticket-divider">
     <div class="ticket-line ticket-total"><span>TOTAL</span><span>${fmt(total)}</span></div>
     <hr class="ticket-divider">
@@ -949,7 +1029,7 @@ async function verTicket(idOrden, total) {
 
 function imprimirTicket() {
   const contenido = document.getElementById('ticketContenido').innerHTML;
-  const ventana = window.open('', '_blank', 'width=400,height=500');
+  const ventana   = window.open('', '_blank', 'width=400,height=500');
   ventana.document.write(`
     <html><head><title>Ticket</title>
     <style>body{font-family:'Courier New',monospace;font-size:14px;padding:20px}hr{border:none;border-top:1px dashed #999;margin:8px 0}.ticket-line{display:flex;justify-content:space-between}.ticket-total{font-weight:700}</style>
@@ -961,11 +1041,14 @@ function imprimirTicket() {
 
 /* ════════════════════════════════════════════════
    RESEÑAS / QR
+   DDL: tabla "resena" — ver TABLAS_SUPABASE_v2.sql
 ════════════════════════════════════════════════ */
 function poblarQRSelector() {
   const sel = document.getElementById('qrMesaSelect');
   if (!sel) return;
-  const nums = allMesas.length ? allMesas.map(m => m.numero) : Array.from({length:12},(_,i)=>i+1);
+  const nums = allMesas.length
+    ? allMesas.map(m => m.numero)
+    : Array.from({ length: 12 }, (_, i) => i + 1);
   sel.innerHTML = '<option value="">— elige una mesa —</option>' +
     nums.map(n => `<option value="${n}">Mesa ${n}</option>`).join('');
 }
@@ -981,8 +1064,8 @@ function generarQR(numMesa) {
     return;
   }
   const baseUrl = window.location.href.split('?')[0];
-  const url = `${baseUrl}?resena=true&mesa=${numMesa}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&color=E63946&bgcolor=FFFBF0`;
+  const url     = `${baseUrl}?resena=true&mesa=${numMesa}`;
+  const qrUrl   = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&color=E63946&bgcolor=FFFBF0`;
   wrap.innerHTML = `
     <img src="${qrUrl}" alt="QR Mesa ${numMesa}" width="200" height="200"/>
     <p style="font-weight:700;margin-top:0.5rem">Mesa ${numMesa}</p>
@@ -992,39 +1075,39 @@ function generarQR(numMesa) {
 }
 
 async function loadResenas() {
-  const lista = document.getElementById('resenasLista');
-  const statsWrap = document.getElementById('resenasStats');
-  lista.innerHTML = '<div class="spinner" style="margin:2rem auto"></div>';
+  const lista      = document.getElementById('resenasLista');
+  const statsWrap  = document.getElementById('resenasStats');
+  lista.innerHTML  = '<div class="spinner" style="margin:2rem auto"></div>';
   try {
-    const data = await sb.get('resena', 'select=id_resena,numero_mesa,calificacion,comentario,fecha&order=fecha.desc&limit=20');
+    const data = await sb.get('resena',
+      'select=id_resena,numero_mesa,calificacion,comentario,fecha&order=fecha.desc&limit=20'
+    );
     if (!data.length) {
-      lista.innerHTML = '<p style="color:var(--gris);text-align:center;padding:2rem">Sin reseñas aún. ¡Comparte los QRs!</p>';
+      lista.innerHTML   = '<p style="color:var(--gris);text-align:center;padding:2rem">Sin reseñas aún. ¡Comparte los QRs!</p>';
       statsWrap.innerHTML = '';
       return;
     }
-    const total = data.length;
-    const promedio = (data.reduce((s,r) => s + r.calificacion, 0) / total).toFixed(1);
-    const dist = [5,4,3,2,1].map(n => ({ stars: n, count: data.filter(r=>r.calificacion===n).length }));
+    const total    = data.length;
+    const promedio = (data.reduce((s, r) => s + r.calificacion, 0) / total).toFixed(1);
+    const dist     = [5, 4, 3, 2, 1].map(n => ({ stars: n, count: data.filter(r => r.calificacion === n).length }));
     statsWrap.innerHTML = `
       <div class="resena-stat-card"><div class="rsc-num">${promedio}⭐</div><div class="rsc-label">Promedio</div></div>
       <div class="resena-stat-card"><div class="rsc-num">${total}</div><div class="rsc-label">Reseñas</div></div>
-      ${dist.map(d=>`<div class="resena-stat-card"><div class="rsc-num">${d.count}</div><div class="rsc-label">${'⭐'.repeat(d.stars)}</div></div>`).join('')}
+      ${dist.map(d => `<div class="resena-stat-card"><div class="rsc-num">${d.count}</div><div class="rsc-label">${'⭐'.repeat(d.stars)}</div></div>`).join('')}
     `;
     lista.innerHTML = data.map(r => `
       <div class="resena-item">
-        <div class="resena-stars">${'⭐'.repeat(r.calificacion)}${'☆'.repeat(5-r.calificacion)}</div>
+        <div class="resena-stars">${'⭐'.repeat(r.calificacion)}${'☆'.repeat(5 - r.calificacion)}</div>
         <div class="resena-comentario">${esc(r.comentario || '(sin comentario)')}</div>
         <div class="resena-meta">Mesa ${r.numero_mesa} · ${new Date(r.fecha).toLocaleString('es-MX')}</div>
       </div>
     `).join('');
   } catch(e) {
-    lista.innerHTML = '<p style="color:var(--rojo)">Error al cargar reseñas.</p>';
+    lista.innerHTML = '<p style="color:var(--rojo)">Error al cargar reseñas. ¿Corriste TABLAS_SUPABASE_v2.sql?</p>';
   }
 }
 
-/* ── Reseña pública (cuando cliente escanea QR) ── */
-let estrellaSeleccionada = 0;
-
+/* ── Reseña pública (cliente que escanea el QR) ── */
 function iniciarFormularioResena(numMesa) {
   const overlay = document.getElementById('resenaPublicaOverlay');
   document.getElementById('resenaPublicaMesa').textContent = `Mesa ${numMesa}`;
@@ -1042,12 +1125,12 @@ function seleccionarEstrella(n) {
 }
 
 async function enviarResenaPublica() {
-  const mesa = new URLSearchParams(window.location.search).get('mesa');
+  const mesa       = new URLSearchParams(window.location.search).get('mesa');
   const comentario = document.getElementById('resenaComentario').value.trim();
   if (!estrellaSeleccionada) return showToast('Selecciona una calificación', 'error');
   try {
     await sb.post('resena', {
-      numero_mesa: parseInt(mesa),
+      numero_mesa:  parseInt(mesa),
       calificacion: estrellaSeleccionada,
       comentario
     });
@@ -1073,7 +1156,7 @@ function checkResenaPublica() {
 }
 
 /* ════════════════════════════════════════════════
-   ARRANQUE — init actualizado
+   ARRANQUE
 ════════════════════════════════════════════════ */
 async function init() {
   if (SUPABASE_URL.includes('TU_PROYECTO') || SUPABASE_KEY.includes('TU_ANON_KEY')) {
@@ -1085,13 +1168,20 @@ async function init() {
       </div>`;
     return;
   }
-  await loadCategorias();
+
+  // Carga en paralelo lo que no depende de otros datos
+  await Promise.all([
+    loadCategorias(),
+    loadMeseros(),    // necesario para poblar selector de empleado
+  ]);
   loadMenu();
   loadStats();
   loadOrdenes();
   loadMesas();
   poblarQRSelector();
   checkResenaPublica();
+  cargarRolesEnModal();
+
   // Auto-check notificaciones cada 60 segundos
   checkNotificaciones();
   notifInterval = setInterval(checkNotificaciones, 60000);
