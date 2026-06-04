@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentación Técnica - Los Consentidos</title>
+  <style>
+    :root {
+      --cafe: #8b4513;
+      --cafe-oscuro: #5c2e0e;
+      --fondo: #fbf7f0;
+      --texto: #222;
+      --borde: #d7c1a3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      line-height: 1.65;
+    }
+    header {
+      background: linear-gradient(135deg, var(--cafe-oscuro), var(--cafe));
+      color: white;
+      padding: 48px 20px;
+      text-align: center;
+    }
+    header h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); }
+    header p { margin: 10px auto 0; max-width: 850px; }
+    main {
+      width: min(1100px, 94%);
+      margin: 28px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 6px 25px rgba(0,0,0,.08);
+    }
+    nav {
+      background: #fff8ef;
+      border: 1px solid var(--borde);
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 28px;
+    }
+    nav h2 { margin-top: 0; color: var(--cafe-oscuro); }
+    nav a { display: block; color: var(--cafe-oscuro); text-decoration: none; margin: 5px 0; }
+    nav a:hover { text-decoration: underline; }
+    .toc-level-2 { margin-left: 18px; font-size: .96rem; }
+    h1, h2 { color: var(--cafe-oscuro); }
+    h1 { border-bottom: 3px solid var(--cafe); padding-bottom: 8px; margin-top: 42px; }
+    h2 { margin-top: 30px; }
+    ul { padding-left: 28px; }
+    li { margin-bottom: 8px; }
+    .table-wrap { overflow-x: auto; margin: 18px 0; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 620px;
+      background: white;
+    }
+    th {
+      background: var(--cafe);
+      color: white;
+      text-align: left;
+    }
+    th, td {
+      border: 1px solid var(--borde);
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #fcf8f1; }
+    pre {
+      background: #f4efe7;
+      border-left: 5px solid var(--cafe);
+      padding: 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+    code { font-family: Consolas, Monaco, monospace; }
+    figure { margin: 24px 0; text-align: center; }
+    figure img {
+      max-width: 100%;
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      background: #fafafa;
+      min-height: 160px;
+    }
+    figcaption {
+      color: var(--cafe-oscuro);
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .nota-imagen {
+      font-size: .92rem;
+      color: #555;
+      margin-top: 6px;
+    }
+    footer {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Documentación Técnica</h1>
+    <p>Sistema de gestión integral para el restaurante <strong>Los Consentidos</strong></p>
+  </header>
+  <main>
+    <nav aria-label="Índice de la documentación">
+      <h2>Índice</h2>
+      <a href="#2-planteamiento-del-problema" class="toc-level-1">2. Planteamiento del Problema</a>
+<a href="#2-1-descripcion-de-la-problematica" class="toc-level-2">2.1 Descripción de la Problemática</a>
+<a href="#2-2-levantamiento-de-requerimientos" class="toc-level-2">2.2 Levantamiento de Requerimientos</a>
+<a href="#3-diseno-conceptual-modelos-e-r-y-eer" class="toc-level-1">3. Diseño Conceptual — Modelos E-R y EER</a>
+<a href="#3-1-identificacion-de-entidades-modelo-e-r" class="toc-level-1">3.1 Identificación de Entidades (Modelo E-R)</a>
+<a href="#3-2-relaciones-y-cardinalidades" class="toc-level-2">3.2 Relaciones y Cardinalidades</a>
+<a href="#3-3-jerarquia-isa-especializacion-de-empleados" class="toc-level-2">3.3 Jerarquía ISA — Especialización de Empleados</a>
+<a href="#3-4-entidades-debiles" class="toc-level-2">3.4 Entidades Débiles</a>
+<a href="#3-5-diagrama-e-r-practica-1" class="toc-level-2">3.5 Diagrama E-R (Práctica 1)</a>
+<a href="#3-6-diagrama-eer-notacion-crow-s-feet-practica-2" class="toc-level-2">3.6 Diagrama EER — Notación Crow&#x27;s Feet (Práctica 2)</a>
+<a href="#4-modelo-relacional" class="toc-level-1">4. Modelo Relacional</a>
+<a href="#4-1-estrategia-de-transformacion" class="toc-level-2">4.1 Estrategia de Transformación</a>
+<a href="#4-2-tablas-resultantes-del-esquema-relacional" class="toc-level-2">4.2 Tablas Resultantes del Esquema Relacional</a>
+<a href="#4-3-diagrama-del-modelo-relacional" class="toc-level-2">4.3 Diagrama del Modelo Relacional</a>
+<a href="#4-4-diccionario-de-datos" class="toc-level-2">4.4 Diccionario de Datos</a>
+<a href="#5-implementacion-ddl-y-restricciones-de-dominio" class="toc-level-1">5. Implementación — DDL y Restricciones de Dominio</a>
+<a href="#5-1-sistema-gestor-de-base-de-datos" class="toc-level-2">5.1 Sistema Gestor de Base de Datos</a>
+<a href="#5-2-creacion-del-esquema-ddl-principal" class="toc-level-2">5.2 Creación del Esquema — DDL Principal</a>
+<a href="#5-3-restricciones-de-dominio-implementadas" class="toc-level-2">5.3 Restricciones de Dominio Implementadas</a>
+<a href="#5-4-acciones-referenciales-on-delete-on-update" class="toc-level-2">5.4 Acciones Referenciales (ON DELETE / ON UPDATE)</a>
+<a href="#6-seguridad-y-control-de-acceso-dcl" class="toc-level-1">6. Seguridad y Control de Acceso — DCL</a>
+<a href="#6-1-diseno-de-roles-del-sistema" class="toc-level-2">6.1 Diseño de Roles del Sistema</a>
+<a href="#7-arquitectura-del-sistema" class="toc-level-1">7. Arquitectura del Sistema</a>
+<a href="#7-1-stack-tecnologico" class="toc-level-2">7.1 Stack Tecnológico</a>
+<a href="#7-2-diagrama-de-arquitectura" class="toc-level-2">7.2 Diagrama de Arquitectura</a>
+<a href="#7-3-modulos-funcionales" class="toc-level-2">7.3 Módulos Funcionales</a>
+<a href="#8-pruebas-de-integridad-y-seguridad" class="toc-level-1">8. Pruebas de Integridad y Seguridad</a>
+    </nav>
+    <p>1. Introducción</p>
+<p>El presente documento constituye la documentación técnica completa del proyecto final de la materia Bases de Datos, desarrollado por el equipo del Grupo 3CV2 de la Escuela Superior de Cómputo (ESCOM) del Instituto Politécnico Nacional (IPN). El proyecto consiste en el diseño, modelado e implementación de un sistema de gestión integral para el restaurante &quot;Los Consentidos&quot;, establecimiento de comida tradicional mexicana ubicado en la colonia Lindavista, Ciudad de México.</p>
+<p>El sistema fue desarrollado como una aplicación web desplegada en GitHub Pages, utilizando HTML5, CSS3 y JavaScript vanilla como tecnologías de frontend, y Supabase (PostgreSQL en la nube) como backend de base de datos. La solución permite digitalizar y automatizar las operaciones críticas del restaurante: toma de órdenes en mesa, control de inventario de ingredientes, gestión de personal, administración de caja y generación de reseñas de clientes mediante códigos QR.</p>
+<p>El proyecto es el resultado de cuatro prácticas progresivas que abarcan desde el levantamiento de requerimientos y el modelado conceptual (Modelo E-R y E-R Extendido), pasando por la transformación al modelo relacional, hasta la implementación física con DDL y la asignación de permisos con DCL. Cada etapa se encuentra documentada en las secciones correspondientes de este documento.</p>
+<h1 id="2-planteamiento-del-problema">2. Planteamiento del Problema</h1>
+<h2 id="2-1-descripcion-de-la-problematica">2.1 Descripción de la Problemática</h2>
+<p>El restaurante &quot;Los Consentidos&quot; operaba con un modelo de gestión completamente manual que presentaba múltiples vulnerabilidades operativas. Los procesos críticos afectados eran los siguientes:</p>
+<ul>
+<li>Gestión de órdenes en papel: Cada mesero contaba con una libreta personal donde anotaba el número de mesa, los platillos solicitados, sus precios y el total. Este proceso generaba errores frecuentes al no recordar los pedidos correctamente o al realizar cálculos aritméticos equivocados.</li>
+<li>Cuadre de caja manual: Al final de cada jornada, el cajero debía conciliar el dinero en caja contra la suma de todas las órdenes registradas. La posibilidad de errores humanos en este proceso representaba un riesgo financiero directo para el negocio.</li>
+<li>Control de inventario deficiente: El inventario de ingredientes se llevaba en papel y no se actualizaba en tiempo real, lo que causaba que ciertos insumos se agotaran sin previo aviso, resultando en clientes insatisfechos y compras reactivas a proveedores.</li>
+</ul>
+<h2 id="2-2-levantamiento-de-requerimientos">2.2 Levantamiento de Requerimientos</h2>
+<p>Se realizó una entrevista simulada entre el analista del equipo y el dueño del restaurante, de la cual se extrajeron los siguientes requerimientos funcionales del sistema:</p>
+<ul>
+<li>Registrar y vincular cada orden con el mesero responsable y la mesa atendida.</li>
+<li>Permitir el registro de múltiples platillos con cantidad en una sola orden.</li>
+<li>Alertar cuando algún ingrediente del inventario esté por debajo de su cantidad mínima.</li>
+<li>Asociar cada ingrediente con su proveedor correspondiente.</li>
+<li>Registrar los ingresos diarios basados en la suma total de las órdenes cobradas.</li>
+<li>Registrar egresos por compras realizadas a proveedores.</li>
+<li>Proporcionar acceso a información del personal del restaurante.</li>
+<li>Identificar los platillos más ordenados para gestionar la demanda de ingredientes.</li>
+</ul>
+<h1 id="3-diseno-conceptual-modelos-e-r-y-eer">3. Diseño Conceptual — Modelos E-R y EER</h1>
+<h1 id="3-1-identificacion-de-entidades-modelo-e-r">3.1 Identificación de Entidades (Modelo E-R)</h1>
+<p>A partir del análisis del problema y el levantamiento de requerimientos, se identificaron las siguientes entidades para el modelo E-R inicial:</p>
+<div class="table-wrap"><table><tr><th>Entidad</th><th>Descripción</th></tr>
+<tr><td>EMPLEADO</td><td>Trabajadores del restaurante: cajero, meseros, lavalozas, repartidores, cocineros.</td></tr>
+<tr><td>PLATILLO</td><td>Comidas y bebidas que el restaurante ofrece en su menú.</td></tr>
+<tr><td>MESA</td><td>Espacio físico que ocupan los clientes dentro del restaurante.</td></tr>
+<tr><td>INGREDIENTE</td><td>Insumos del inventario utilizados para preparar los platillos.</td></tr>
+<tr><td>PROVEEDOR</td><td>Empresas o personas que abastecen al restaurante de ingredientes.</td></tr>
+<tr><td>ORDEN</td><td>Registro de la prestación del servicio a una mesa con sus platillos.</td></tr>
+<tr><td>DETALLE_ORDEN</td><td>Entidad débil que registra cada platillo y su cantidad dentro de una orden.</td></tr>
+<tr><td>PRESUPUESTO</td><td>Dinero disponible acumulado del restaurante.</td></tr>
+<tr><td>INGRESO</td><td>Dinero recibido por la prestación del servicio (dependiente de Orden).</td></tr>
+<tr><td>EGRESO</td><td>Pagos realizados a proveedores por compra de insumos.</td></tr></table></div>
+<p>Tabla 1. Entidades identificadas en el modelo E-R</p>
+<h2 id="3-2-relaciones-y-cardinalidades">3.2 Relaciones y Cardinalidades</h2>
+<p>Las relaciones entre entidades se definieron con cardinalidades mínimas y máximas (min, max) como parte del modelo EER, incorporando restricciones operativas reales del negocio:</p>
+<div class="table-wrap"><table><tr><th>Relación</th><th>Tipo</th><th>Cardinalidad</th><th>Descripción</th></tr>
+<tr><td>EMPLEADO – atiende – MESA</td><td>1:N</td><td>(1,4) : (1,1)</td><td>Un mesero atiende entre 1 y 4 mesas simultáneamente.</td></tr>
+<tr><td>EMPLEADO – genera – ORDEN</td><td>1:N</td><td>(1,N) : (1,1)</td><td>Un mesero genera muchas órdenes; cada orden tiene un solo mesero.</td></tr>
+<tr><td>ORDEN – contiene – DETALLE_ORDEN</td><td>1:N</td><td>(1,N) : (1,30)</td><td>Una orden tiene entre 1 y 30 renglones de detalle.</td></tr>
+<tr><td>DETALLE_ORDEN – incluye – PLATILLO</td><td>N:M</td><td>(1,30) : (0,N)</td><td>Un platillo puede aparecer en múltiples detalles de orden.</td></tr>
+<tr><td>PROVEEDOR – vende – INGREDIENTE</td><td>N:M</td><td>(0,N) : (1,10)</td><td>Un proveedor puede surtir hasta 10 ingredientes distintos.</td></tr>
+<tr><td>ORDEN – genera – INGRESO</td><td>1:1</td><td>(1,1) : (1,1)</td><td>Cada orden genera exactamente un ingreso al cobrarse.</td></tr>
+<tr><td>INGRESO – aumenta – PRESUPUESTO</td><td>N:1</td><td>(N,1) : (1,1)</td><td>Muchos ingresos aumentan el presupuesto del restaurante.</td></tr>
+<tr><td>EGRESO – disminuye – PRESUPUESTO</td><td>N:1</td><td>(N,1) : (1,1)</td><td>Muchos egresos disminuyen el presupuesto del restaurante.</td></tr>
+<tr><td>PROVEEDOR – genera – EGRESO</td><td>1:N</td><td>(1,N) : (1,1)</td><td>Un proveedor genera múltiples egresos; cada egreso va a un proveedor.</td></tr></table></div>
+<p>Tabla 2. Relaciones y cardinalidades del modelo EER</p>
+<h2 id="3-3-jerarquia-isa-especializacion-de-empleados">3.3 Jerarquía ISA — Especialización de Empleados</h2>
+<p>Se identificó que agrupar a todos los trabajadores en una única entidad EMPLEADO generaba atributos nulos innecesarios (un cocinero no tiene propinas acumuladas; un cajero no tiene zona asignada). Se diseñó la siguiente jerarquía de especialización:</p>
+<ul>
+<li>Supertipo: EMPLEADO — contiene atributos globales: número de empleado, nombre, apellidos, teléfono, fecha de ingreso y fecha de egreso.</li>
+<li>Subtipo MESERO: Atributos específicos: zona_asignada y propinas_acumuladas.</li>
+<li>Subtipo COCINERO: Atributos específicos: especialidad y certificacion_sanitaria.</li>
+<li>Subtipo CAJERO: Atributos específicos: caja_asignada y caja_faltante.</li>
+</ul>
+<p>La especialización es disjunta (un empleado pertenece a un solo subtipo activo) y total (todo empleado debe pertenecer obligatoriamente a algún subtipo).</p>
+<h2 id="3-4-entidades-debiles">3.4 Entidades Débiles</h2>
+<ul>
+<li>DETALLE_ORDEN (dependencia de identificación): No tiene identificador propio. Su clave primaria es compuesta: (orden_id, platillo_id). Si una orden se elimina, todos sus detalles se eliminan en cascada. Esta entidad resuelve el requerimiento de registrar múltiples platillos con cantidad en una sola orden.</li>
+<li>INGRESO (dependencia de existencia): Posee su propio ID, pero no puede existir sin la orden que lo origina. Si la orden se cancela antes de cobrarse, el ingreso debe eliminarse con ella.</li>
+</ul>
+<h2 id="3-5-diagrama-e-r-practica-1">3.5 Diagrama E-R (Práctica 1)</h2>
+<p>Insertar aquí el Diagrama E-R de la Práctica 1 (notación Crow&#x27;s Feet).</p>
+<figure class="diagram-placeholder">
+  <img src="imagenes/diagrama-er.png" alt="Diagrama E-R de la Práctica 1" loading="lazy">
+  <figcaption>DIAGRAMA E-R — PRÁCTICA 1</figcaption>
+  <p class="nota-imagen">Sube la imagen correspondiente en la carpeta <code>imagenes/</code> con el nombre <code>diagrama-er.png</code>.</p>
+</figure>
+<h2 id="3-6-diagrama-eer-notacion-crow-s-feet-practica-2">3.6 Diagrama EER — Notación Crow&#x27;s Feet (Práctica 2)</h2>
+<p>Insertar aquí el Diagrama EER de la Práctica 2 (notación Crow&#x27;s Feet con jerarquía ISA y cardinalidades min/max).</p>
+<figure class="diagram-placeholder">
+  <img src="imagenes/diagrama-eer.png" alt="Diagrama EER con notación Crow&#x27;s Feet" loading="lazy">
+  <figcaption>DIAGRAMA EER — PRÁCTICA 2 (Notación Crow&#x27;s Feet)</figcaption>
+  <p class="nota-imagen">Sube la imagen correspondiente en la carpeta <code>imagenes/</code> con el nombre <code>diagrama-eer.png</code>.</p>
+</figure>
+<h1 id="4-modelo-relacional">4. Modelo Relacional</h1>
+<h2 id="4-1-estrategia-de-transformacion">4.1 Estrategia de Transformación</h2>
+<p>La transformación del modelo EER al modelo relacional se realizó aplicando las ocho reglas estándar de conversión. Las decisiones de diseño más relevantes fueron:</p>
+<ul>
+<li>Jerarquía ISA (Estrategia A — múltiples tablas): Se creó una tabla por cada subtipo (MESERO, COCINERO, CAJERO) cuya PK es a la vez FK que referencia a EMPLEADO. Esta estrategia elimina valores NULL innecesarios y facilita la escalabilidad (agregar un subtipo &quot;Bartender&quot; en el futuro no altera las tablas existentes).</li>
+<li>Atributos multivaluados: El teléfono de EMPLEADO y de PROVEEDOR se extrajo a tablas separadas (EMPLEADO_TELEFONO y PROVEEDOR_TELEFONO) con PK compuesta.</li>
+<li>Relación N:M PROVEEDOR–INGREDIENTE: Se creó la tabla asociativa PROVEEDOR_INGREDIENTE.</li>
+<li>Relación 1:1 ORDEN–INGRESO: Se propagó orden_id como FK UNIQUE NOT NULL en INGRESO, garantizando que ninguna orden se cobre dos veces.</li>
+<li>Entidad débil DETALLE_ORDEN: PK compuesta (orden_id, platillo_id) con ON DELETE CASCADE para asegurar que eliminar una orden borre automáticamente sus renglones de detalle.</li>
+</ul>
+<h2 id="4-2-tablas-resultantes-del-esquema-relacional">4.2 Tablas Resultantes del Esquema Relacional</h2>
+<p>El modelo relacional final del restaurante Los Consentidos está compuesto por 16 tablas:</p>
+<div class="table-wrap"><table><tr><th>Tabla</th><th>Tipo</th><th>Descripción</th></tr>
+<tr><td>EMPLEADO</td><td>Fuerte / Supertipo</td><td>Datos generales de todos los empleados.</td></tr>
+<tr><td>MESERO</td><td>Subtipo (ISA)</td><td>Atributos específicos del rol mesero; PK es FK a EMPLEADO.</td></tr>
+<tr><td>COCINERO</td><td>Subtipo (ISA)</td><td>Atributos específicos del rol cocinero; PK es FK a EMPLEADO.</td></tr>
+<tr><td>CAJERO</td><td>Subtipo (ISA)</td><td>Atributos específicos del rol cajero; PK es FK a EMPLEADO.</td></tr>
+<tr><td>EMPLEADO_TELEFONO</td><td>Multivaluado</td><td>Teléfonos del empleado (PK compuesta: numero_empleado + telefono).</td></tr>
+<tr><td>PLATILLO</td><td>Fuerte</td><td>Catálogo de platillos del menú con precio y frecuencia.</td></tr>
+<tr><td>PROVEEDOR</td><td>Fuerte</td><td>Empresas proveedoras de insumos.</td></tr>
+<tr><td>PROVEEDOR_TELEFONO</td><td>Multivaluado</td><td>Teléfonos del proveedor (PK compuesta: proveedor_id + telefono).</td></tr>
+<tr><td>INGREDIENTE</td><td>Fuerte</td><td>Insumos del inventario con existencia, mínimo y unidad.</td></tr>
+<tr><td>PROVEEDOR_INGREDIENTE</td><td>Asociativa N:M</td><td>Tabla puente entre proveedor e ingrediente.</td></tr>
+<tr><td>MESA</td><td>Fuerte</td><td>Mesas del restaurante con posición y estado.</td></tr>
+<tr><td>ORDEN</td><td>Fuerte / Transaccional</td><td>Registro de cada servicio prestado a una mesa.</td></tr>
+<tr><td>DETALLE_ORDEN</td><td>Débil (identificación)</td><td>Renglones de platillo dentro de una orden (PK compuesta).</td></tr>
+<tr><td>INGRESO</td><td>Débil (existencia)</td><td>Registro financiero del cobro de una orden (1:1 con ORDEN).</td></tr>
+<tr><td>PRESUPUESTO</td><td>Fuerte</td><td>Presupuesto acumulado del restaurante (PK: monto + fecha).</td></tr>
+<tr><td>EGRESO</td><td>Fuerte / Transaccional</td><td>Pagos realizados a proveedores.</td></tr></table></div>
+<p>Tabla 3. Las 16 tablas del esquema relacional</p>
+<h2 id="4-3-diagrama-del-modelo-relacional">4.3 Diagrama del Modelo Relacional</h2>
+<p>Insertar aquí el diagrama del modelo relacional completo de la Práctica 3 (Figura 1 del documento).</p>
+<figure class="diagram-placeholder">
+  <img src="imagenes/modelo-relacional.png" alt="Diagrama del modelo relacional completo" loading="lazy">
+  <figcaption>DIAGRAMA DEL MODELO RELACIONAL — PRÁCTICA 3</figcaption>
+  <p class="nota-imagen">Sube la imagen correspondiente en la carpeta <code>imagenes/</code> con el nombre <code>modelo-relacional.png</code>.</p>
+</figure>
+<h2 id="4-4-diccionario-de-datos">4.4 Diccionario de Datos</h2>
+<p>A continuación, se muestra el diccionario de datos de la tabla EMPLEADO como ejemplo representativo.</p>
+<div class="table-wrap"><table><tr><th>Tabla</th><th>Columna</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr>
+<tr><td>EMPLEADO</td><td>numero_empleado nombre apellido_paterno apellido_materno puesto fecha_ingreso fecha_egreso</td><td>SERIAL VARCHAR(60) VARCHAR(60) VARCHAR(60) VARCHAR(40) DATE DATE</td><td>PK, NOT NULL NOT NULL NOT NULL NOT NULL NOT NULL NOT NULL CHECK</td><td>Identificador único del empleado Nombre de Empleado Primer Apellido Segundo Apellido Cargo en el Restaurante Fecha Contratación Fecha de Baja</td></tr></table></div>
+<p>Tabla 4. Diccionario de datos</p>
+<h1 id="5-implementacion-ddl-y-restricciones-de-dominio">5. Implementación — DDL y Restricciones de Dominio</h1>
+<h2 id="5-1-sistema-gestor-de-base-de-datos">5.1 Sistema Gestor de Base de Datos</h2>
+<p>Para la implementación final del proyecto se utilizó Supabase como backend de base de datos, el cual expone una instancia de PostgreSQL en la nube. Esta elección permitió el despliegue sin servidor de la aplicación en GitHub Pages, ya que Supabase ofrece una API REST y credenciales de acceso público (anon key) que el frontend consume directamente mediante JavaScript.</p>
+<p>Durante el desarrollo de la Práctica 4 se utilizó MySQL 9.0 con MySQL Workbench 8.0 para la implementación y prueba local del DDL. El esquema resultante es compatible con PostgreSQL (Supabase) con ajustes menores en la sintaxis (SERIAL en lugar de AUTO_INCREMENT, DEFAULT CURRENT_DATE sin paréntesis).</p>
+<h2 id="5-2-creacion-del-esquema-ddl-principal">5.2 Creación del Esquema — DDL Principal</h2>
+<p>Las tablas se crean en el orden correcto respetando las dependencias de claves foráneas (tablas padre antes que hijas). A continuación se muestran fragmentos representativos del DDL:</p>
+<pre><code>-- Tabla EMPLEADO (supertipo de la jerarquía ISA)
+CREATE TABLE EMPLEADO (
+numero_empleado SERIAL NOT NULL,</code></pre>
+<p>nombre          VARCHAR(60) NOT NULL,</p>
+<p>apellido_paterno VARCHAR(60) NOT NULL,</p>
+<p>apellido_materno VARCHAR(60),</p>
+<p>puesto          VARCHAR(40) NOT NULL,</p>
+<p>fecha_ingreso   DATE NOT NULL DEFAULT CURRENT_DATE,</p>
+<p>fecha_egreso    DATE,</p>
+<pre><code>CONSTRAINT pk_empleado PRIMARY KEY (numero_empleado),
+CONSTRAINT chk_egreso CHECK (</code></pre>
+<p>fecha_egreso IS NULL OR fecha_egreso &gt;= fecha_ingreso</p>
+<p>)</p>
+<pre><code>);
+
+-- Tabla DETALLE_ORDEN (entidad débil por identificación)
+CREATE TABLE DETALLE_ORDEN (
+orden_id   INTEGER NOT NULL,
+platillo_id INTEGER NOT NULL,
+cantidad   INTEGER NOT NULL DEFAULT 1,
+CONSTRAINT pk_detalle PRIMARY KEY (orden_id, platillo_id),
+CONSTRAINT fk_det_orden FOREIGN KEY (orden_id)
+REFERENCES ORDEN(id) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT fk_det_platillo FOREIGN KEY (platillo_id)
+REFERENCES PLATILLO(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+CONSTRAINT chk_cantidad CHECK (cantidad BETWEEN 1 AND 30)
+);
+</code></pre>
+<h2 id="5-3-restricciones-de-dominio-implementadas">5.3 Restricciones de Dominio Implementadas</h2>
+<p>Se implementaron 14 restricciones CHECK que codifican reglas de negocio directamente en la base de datos, de modo que ninguna capa de la aplicación pueda eludirlas:</p>
+<ul>
+<li>precio &gt; 0 en PLATILLO — Un platillo sin precio o con precio negativo es un error de captura.</li>
+<li>frecuencia &gt;= 0 en PLATILLO — El contador de ventas no puede ser negativo.</li>
+<li>existencia &gt;= 0 en INGREDIENTE — No se pueden tener kilos negativos en inventario.</li>
+<li>minimo &gt; 0 en INGREDIENTE — El umbral de alerta debe ser positivo.</li>
+<li>unidad IN (&#x27;KG&#x27;,&#x27;PZ&#x27;,&#x27;LTS&#x27;) en INGREDIENTE — Catálogo cerrado para estandarizar el inventario.</li>
+<li>posicion IN (&#x27;Interior&#x27;,&#x27;Exterior&#x27;,&#x27;Terraza&#x27;) en MESA — Solo existen tres zonas físicas.</li>
+<li>numero_mesa &gt; 0 en MESA — Los números de mesa comienzan en 1.</li>
+<li>fecha_egreso IS NULL OR fecha_egreso &gt;= fecha_ingreso en EMPLEADO — Coherencia de fechas laborales.</li>
+<li>propinas_acumuladas &gt;= 0 en MESERO — Las propinas son siempre positivas.</li>
+<li>caja_faltante &gt;= 0 en CAJERO — El faltante de arqueo nunca es negativo.</li>
+</ul>
+<pre><code>cantidad BETWEEN 1 AND 30 en DETALLE_ORDEN — Implementa la cardinalidad (1,30) del modelo EER.</code></pre>
+<ul>
+<li>cuenta_total &gt;= 0 en ORDEN — La cuenta de una mesa no puede ser negativa.</li>
+<li>monto &gt; 0 en EGRESO — Todo pago a proveedor es positivo.</li>
+<li>monto &gt; 0 en INGRESO — Un ingreso de cero pesos no tiene sentido contable.</li>
+</ul>
+<h2 id="5-4-acciones-referenciales-on-delete-on-update">5.4 Acciones Referenciales (ON DELETE / ON UPDATE)</h2>
+<p>La decisión entre ON DELETE CASCADE y ON DELETE RESTRICT no es técnica sino de negocio. El criterio aplicado fue:</p>
+<ul>
+<li>CASCADE: Para entidades débiles y datos que no tienen valor sin su padre. Ejemplo: los renglones de DETALLE_ORDEN no existen sin su ORDEN; los registros de INGRESO no existen sin su ORDEN.</li>
+<li>RESTRICT: Para proteger el historial financiero y operativo. Ejemplo: no se puede eliminar un PROVEEDOR si tiene EGRESOS asociados; no se puede eliminar un MESERO si tiene MESAS u ÓRDENES asignadas.</li>
+</ul>
+<h1 id="6-seguridad-y-control-de-acceso-dcl">6. Seguridad y Control de Acceso — DCL</h1>
+<h2 id="6-1-diseno-de-roles-del-sistema">6.1 Diseño de Roles del Sistema</h2>
+<p>Siguiendo el principio de privilegio mínimo, se diseñaron cuatro roles que reflejan los perfiles de acceso del restaurante. El uso de ROLES (en lugar de asignar permisos directamente a usuarios) facilita la escalabilidad: al contratar un nuevo cajero, basta asignarle el rol existente sin tener que reescribir sentencias GRANT individuales.</p>
+<div class="table-wrap"><table><tr><th>Rol</th><th>Perfil</th><th>Tablas / Privilegios</th></tr>
+<tr><td>admin_db</td><td>Administrador de BD. Mantenimiento, respaldos y gestión de usuarios.</td><td>ALL PRIVILEGES en todas las tablas (DDL + DML + DCL).</td></tr>
+<tr><td>gerente</td><td>Gerente del restaurante. Revisa reportes, gestiona inventario y nómina.</td><td>SELECT, INSERT, UPDATE, DELETE en todas las tablas transaccionales (sin DDL).</td></tr>
+<tr><td>cajero</td><td>Cajero en caja registradora. Toma y liquida órdenes.</td><td>PLATILLO (SELECT), ORDEN (SELECT/INSERT/UPDATE), DETALLE_ORDEN (SELECT/INSERT/UPDATE), INGRESO (SELECT/INSERT).</td></tr>
+<tr><td>mesero_app</td><td>Aplicación en tableta del mesero. Registra pedidos en mesa.</td><td>PLATILLO (SELECT), MESA (SELECT), ORDEN (INSERT), DETALLE_ORDEN (INSERT). Sin acceso a datos financieros.</td></tr></table></div>
+<p>Tabla 5. Roles y privilegios del sistema</p>
+<h1 id="7-arquitectura-del-sistema">7. Arquitectura del Sistema</h1>
+<h2 id="7-1-stack-tecnologico">7.1 Stack Tecnológico</h2>
+<ul>
+<li>Frontend: HTML5, CSS3, JavaScript vanilla. Desplegado en GitHub Pages (repositorio: https://github.com/aeiou520814-del/abc).</li>
+<li>Backend / Base de Datos: Supabase — PostgreSQL gestionado en la nube. Proporciona API REST y credenciales (URL + anon key) consumidas directamente desde el frontend.</li>
+<li>Tipografías: Cormorant Garamond (títulos) y Montserrat (cuerpo), cargadas desde Google Fonts.</li>
+<li>Estructura de archivos: index.html (interfaz y modales), styles.css (estilos), app.js (lógica de negocio y conexión a Supabase), config.js (credenciales de Supabase).</li>
+</ul>
+<h2 id="7-2-diagrama-de-arquitectura">7.2 Diagrama de Arquitectura</h2>
+<p>Insertar aquí un diagrama de arquitectura que muestre: Navegador Web → app.js → Supabase API REST → PostgreSQL (tablas del esquema).</p>
+<figure class="diagram-placeholder">
+  <img src="imagenes/arquitectura.png" alt="Diagrama de arquitectura del sistema" loading="lazy">
+  <figcaption>DIAGRAMA DE ARQUITECTURA DEL SISTEMA</figcaption>
+  <p class="nota-imagen">Sube la imagen correspondiente en la carpeta <code>imagenes/</code> con el nombre <code>arquitectura.png</code>.</p>
+</figure>
+<h2 id="7-3-modulos-funcionales">7.3 Módulos Funcionales</h2>
+<p>La aplicación está estructurada en siete módulos accesibles desde la barra de navegación. Cada módulo corresponde a una o más operaciones CRUD sobre las tablas del esquema relacional:</p>
+<div class="table-wrap"><table><tr><th>Módulo</th><th>Sección en UI</th><th>Operaciones sobre BD</th></tr>
+<tr><td>Menú</td><td>#menu</td><td>SELECT platillos (por categoría), INSERT platillo nuevo.</td></tr>
+<tr><td>Órdenes</td><td>#ordenes</td><td>INSERT en ORDEN y DETALLE_ORDEN, UPDATE estado (pendiente → servido).</td></tr>
+<tr><td>Inventario</td><td>#inventario</td><td>SELECT ingredientes, alerta cuando existencia &lt; minimo, INSERT ingrediente, UPDATE existencia.</td></tr>
+<tr><td>Personal</td><td>#meseros</td><td>SELECT empleados con subtipo, INSERT empleado nuevo en EMPLEADO + subtipo correspondiente.</td></tr>
+<tr><td>Mesas</td><td>#mesas</td><td>SELECT estado de mesas, UPDATE estado (libre/ocupada), función de inicializar layout.</td></tr>
+<tr><td>Caja</td><td>#caja</td><td>SELECT órdenes pendientes de cobro, INSERT en INGRESO al procesar pago, generación de ticket imprimible.</td></tr>
+<tr><td>Reseñas</td><td>#resenas</td><td>Generación de código QR por mesa para formulario público, INSERT reseña con calificación y comentario.</td></tr></table></div>
+<p>Tabla 6. Módulos del sistema y su relación con la base de datos</p>
+<h1 id="8-pruebas-de-integridad-y-seguridad">8. Pruebas de Integridad y Seguridad</h1>
+<p>Se ejecutaron pruebas de validación para verificar que todas las restricciones DDL y los permisos DCL funcionan correctamente. La siguiente tabla documenta los casos de prueba más representativos (el conjunto completo de 12 pruebas DDL y 6 pruebas DCL se encuentra en la Práctica 4, Sección 6):</p>
+<div class="table-wrap"><table><tr><th>#</th><th>Operación SQL / Acción</th><th>Resultado Esperado</th><th>Resultado Obtenido</th></tr>
+<tr><td>1</td><td>INSERT INTO PLATILLO con precio = -50.00</td><td>Error CHECK chk_precio</td><td>Error Code 3819: Check constraint &#x27;chk_precio&#x27; is violated.</td></tr>
+<tr><td>2</td><td>INSERT INTO DETALLE_ORDEN con cantidad = 31</td><td>Error CHECK chk_cantidad</td><td>Error Code 3819: Check constraint &#x27;chk_cantidad&#x27; is violated.</td></tr>
+<tr><td>3</td><td>INSERT INTO INGREDIENTE con unidad = &#x27;ML&#x27;</td><td>Error CHECK chk_unidad</td><td>Error Code 3819: Check constraint &#x27;chk_unidad&#x27; is violated.</td></tr>
+<tr><td>4</td><td>INSERT duplicado de nombre en PROVEEDOR</td><td>Error UNIQUE</td><td>Error Code 1062: Duplicate entry para clave &#x27;proveedor.nombre&#x27;.</td></tr>
+<tr><td>5</td><td>UPDATE EMPLEADO con fecha_egreso anterior a fecha_ingreso</td><td>Error CHECK chk_fechas_emp</td><td>Error Code 3819: Check constraint &#x27;chk_fechas_emp&#x27; is violated.</td></tr>
+<tr><td>6</td><td>DELETE ORDEN con id = 7 (tiene 3 detalles)</td><td>Orden eliminada; 3 DETALLE_ORDEN eliminados en cascada.</td><td>Éxito. SELECT COUNT(*) FROM DETALLE_ORDEN WHERE id_orden = 7 → 0 filas.</td></tr>
+<tr><td>7</td><td>DELETE MESERO con mesas asignadas activas</td><td>Error RESTRICT (FK)</td><td>Error Code 1451: Cannot delete a parent row (FK fk_mesa_mesero).</td></tr>
+<tr><td>8</td><td>tablet_mesero intenta SELECT * FROM INGRESO</td><td>Error de permisos</td><td>Error Code 1142: SELECT command denied to user &#x27;tablet_mesero&#x27;.</td></tr>
+<tr><td>9</td><td>caja_01 intenta DROP TABLE PLATILLO</td><td>Error de permisos (sin DDL)</td><td>Error Code 1142: DROP command denied to user &#x27;caja_01&#x27;.</td></tr>
+<tr><td>10</td><td>INSERT segunda vez el mismo id_orden en INGRESO</td><td>Error UNIQUE (doble cobro)</td><td>Error Code 1062: Duplicate entry para clave &#x27;ingreso.id_orden&#x27;.</td></tr></table></div>
+<p>Tabla 7. Casos de prueba de integridad y seguridad</p>
+  </main>
+  <footer>
+    Documentación técnica del proyecto final de Bases de Datos — ESCOM IPN.
+  </footer>
+</body>
+</html>
