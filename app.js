@@ -811,7 +811,7 @@ async function loadMesas() {
     showToast('Error al cargar mesas. ¿Corriste TABLAS_SUPABASE_v2.sql?', 'error');
   }
 }
-
+/*
 function renderMesas() {
   const wrap = document.getElementById('mapaMesas');
   if (!allMesas.length) {
@@ -835,6 +835,43 @@ function renderMesas() {
       </div>
     `;
   }).join('');
+  poblarQRSelector();
+}*/
+
+function renderMesas() {
+  const wrap = document.getElementById('mapaMesas');
+  
+  // Filtramos solo del 1 al 10, que son las que existen visualmente en el plano
+  const mesasCroquis = allMesas.filter(m => m.numero >= 1 && m.numero <= 10);
+
+  if (!mesasCroquis.length) {
+    wrap.innerHTML = '<p style="text-align:center; padding-top: 25%; color: var(--text-light);">No hay mesas. Haz clic en "Inicializar Layout".</p>';
+    poblarQRSelector();
+    return;
+  }
+
+  // 1. Dibujamos la arquitectura del croquis con bloques div
+  let html = `
+    <div class="pared-principal"></div>
+    <div class="anexo-superior"></div>
+    <div class="anexo-derecho"></div>
+    <div class="cuarto-caja">Caja</div>
+    <div class="cuarto-cocina">Cocina</div>
+    <div class="cuarto-buffet">Buffet</div>
+    <div class="zona-gris"></div>
+  `;
+
+  // 2. Insertamos las mesas dinámicas con su estado
+  html += mesasCroquis.map(m => {
+    const ocupada = m.estado;
+    return `
+      <div class="mesa-card mesa-pos-${m.numero} ${ocupada ? 'ocupada' : 'libre'}" onclick="clickMesa(${m.id_mesa})">
+        <div class="mesa-num">${m.numero}</div>
+      </div>
+    `;
+  }).join('');
+
+  wrap.innerHTML = html;
   poblarQRSelector();
 }
 

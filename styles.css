@@ -190,7 +190,7 @@ h1, h2, h3, h4 { font-family: var(--heading-font); font-weight: 700; color: var(
 .mesero-stat { font-size: 13px; background: var(--secondary-color); padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--r-sm); }
 
 /* Mesas */
-.mapa-mesas { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto; }
+/*.mapa-mesas { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto; }
 .mesa-card { aspect-ratio: 1; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; background: var(--secondary-color); padding: 1rem; text-align: center; }
 .mesa-card:hover { border-color: var(--accent-color); }
 .mesa-card.ocupada { background: var(--text-color); color: var(--primary-color); border-color: var(--text-color); }
@@ -198,7 +198,121 @@ h1, h2, h3, h4 { font-family: var(--heading-font); font-weight: 700; color: var(
 .mesa-num { font-family: var(--heading-font); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
 .mesa-estado { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
 .mesa-tiempo { font-size: 11px; margin-top: 0.5rem; color: var(--accent-color); }
-.mesas-leyenda { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.mesas-leyenda { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }*/
+
+/* ═══════════════════════════════════════════════════
+   MESAS - PLANO ARQUITECTÓNICO EN HTML/CSS PURO
+═══════════════════════════════════════════════════ */
+.mapa-mesas {
+    position: relative;
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    aspect-ratio: 1.45; /* Mantiene la proporción del croquis original */
+    background: #fff;
+    display: block; /* Desactiva el grid anterior */
+}
+
+/* --- ESTRUCTURA DEL LOCAL (PAREDES) --- */
+.pared-principal {
+    position: absolute;
+    left: 8%; width: 70%; top: 18%; bottom: 0;
+    border: 3px solid #000;
+    box-sizing: border-box;
+}
+.anexo-superior {
+    position: absolute;
+    left: 43%; width: 16%; top: 0; height: 18.5%;
+    border: 3px solid #000;
+    border-bottom: 3px solid #fff; /* Borra la línea de la pared inferior */
+    background: #fff;
+    z-index: 2;
+    box-sizing: border-box;
+}
+.anexo-derecho {
+    position: absolute;
+    left: 78%; right: 0; top: 35%; bottom: 0;
+    border: 3px solid #000;
+    border-left: none; /* Comparte el muro con la pared principal */
+    box-sizing: border-box;
+}
+.cuarto-caja {
+    position: absolute;
+    left: 78%; right: 0; top: 35%; height: 25%;
+    border-bottom: 3px solid #000;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--heading-font); font-size: 1.6rem; font-weight: 900; color: #000;
+    z-index: 1;
+}
+.cuarto-cocina {
+    position: absolute;
+    left: 78%; right: 0; top: 60%; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--heading-font); font-size: 1.6rem; font-weight: 900; color: #000;
+    z-index: 1;
+}
+.cuarto-buffet {
+    position: absolute;
+    left: 13%; width: 35%; bottom: 0; height: 18%;
+    border: 3px solid #000;
+    border-bottom: none;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--heading-font); font-size: 1.6rem; font-weight: 900; color: #000;
+    z-index: 2;
+}
+.zona-gris {
+    position: absolute;
+    left: 0; width: 8%; bottom: 0; height: 45%;
+    background: #c0c0c0;
+    z-index: 1;
+}
+
+/* --- MESAS INTERACTIVAS --- */
+.mesa-card {
+    position: absolute;
+    width: 11%;
+    height: 15.5%;
+    border: 3px solid var(--accent-color); /* Color café elegante del tema */
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+    z-index: 3;
+}
+.mesa-card:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+.mesa-card.ocupada {
+    background: var(--accent-color);
+    color: #fff;
+}
+.mesa-card.libre {
+    color: var(--accent-color);
+}
+.mesa-card .mesa-num {
+    font-family: var(--heading-font); font-size: 1.6rem; font-weight: 700; margin: 0;
+}
+
+/* Coordenadas exactas para replicar el croquis */
+.mesa-pos-1 { left: 14%; top: 25%; }
+.mesa-pos-2 { left: 14%; top: 50%; }
+.mesa-pos-3 { left: 31%; top: 25%; }
+.mesa-pos-4 { left: 31%; top: 50%; }
+.mesa-pos-5 { left: 48%; top: 25%; }
+.mesa-pos-6 { left: 48%; top: 50%; }
+.mesa-pos-7 { left: 52%; top: 75%; }
+.mesa-pos-8 { left: 65%; top: 75%; }
+.mesa-pos-9 { left: 65%; top: 19%; }
+.mesa-pos-10 { left: 45.5%; top: 1.5%; }
+
+/* Ajuste responsivo para que los textos no se rompan en móviles */
+@media (max-width: 600px) {
+    .cuarto-caja, .cuarto-cocina, .cuarto-buffet { font-size: 1rem; }
+    .mesa-card .mesa-num { font-size: 1.2rem; }
+}
 
 /* Reseñas */
 .resenas-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; }
