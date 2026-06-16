@@ -1,10 +1,10 @@
 # Documentación Técnica del Proyecto: Los Consentidos
 
-- Integrantes del equipo:
-Gutiérrez Gómez Iván
-Manjarrez Vázquez Ángel Ian
-Márquez Romero David 
-Sosa Jiménez Arturo
+## Integrantes del equipo:
+- Gutiérrez Gómez Iván
+- Manjarrez Vázquez Ángel Ian
+- Márquez Romero David 
+- Sosa Jiménez Arturo
 
 
 ## Índice
