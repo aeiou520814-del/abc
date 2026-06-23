@@ -141,9 +141,6 @@ La tabla **ROLES** (`id INT`, `nombre_rol VARCHAR`) actúa como catálogo de los
 
 ## 4. Modelo Relacional
 
-<img src="https://github.com/aeiou520814-del/abc/blob/main/imagenes/modelorel.jpg?raw=true" alt="Diagrama EER del sistema Los Consentidos" loading="lazy">
-
-
 ### 4.1 Estrategia de Transformación
 
 La transformación del modelo EER al modelo relacional se realizó aplicando las ocho reglas estándar de conversión. Las decisiones de diseño más relevantes fueron:
@@ -179,7 +176,7 @@ El modelo relacional final del restaurante **Los Consentidos**, derivado del dia
 
 ### 4.3 Diagrama del Modelo Relacional
 
-<img src="https://cdn.discordapp.com/attachments/1474619815225196635/1512142639791870084/1f79e42e-b291-4254-bee1-a4f458ee004b.png?ex=6a230413&is=6a21b293&hm=cf9037f0001085b2a1c4bb0e110dcd0825753213da549179dd75ae7e1f88e0fa" alt="Diagrama del modelo relacional del sistema Los Consentidos" loading="lazy">
+<img src="https://github.com/aeiou520814-del/abc/blob/main/imagenes/modelorel.jpg?raw=true" alt="Diagrama Relacional del sistema Los Consentidos" loading="lazy">
 
 ### 4.4 Diccionario de Datos
 
