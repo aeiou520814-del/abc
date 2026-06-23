@@ -135,11 +135,14 @@ La tabla **ROLES** (`id INT`, `nombre_rol VARCHAR`) actúa como catálogo de los
 
 ### 3.5 Diagrama EER
 
-<img src="https://cdn.discordapp.com/attachments/1474619815225196635/1512152393473724476/9kX9qQAAAABklEQVQDAMp0R9zMNK9AAAAAElFTkSuQmCC.png?ex=6a230d29&is=6a21bba9&hm=018bb53314c11c6c1b051f8463fda5733bea8224847359051b7f5b36485524b6" alt="Diagrama EER del sistema Los Consentidos" loading="lazy">
+<img src="https://github.com/aeiou520814-del/abc/blob/main/imagenes/modelo.jpg?raw=true" alt="Diagrama EER del sistema Los Consentidos" loading="lazy">
 
 ---
 
 ## 4. Modelo Relacional
+
+<img src="https://github.com/aeiou520814-del/abc/blob/main/imagenes/modelorel.jpg?raw=true" alt="Diagrama EER del sistema Los Consentidos" loading="lazy">
+
 
 ### 4.1 Estrategia de Transformación
 
